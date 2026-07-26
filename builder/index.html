@@ -155,6 +155,44 @@
     </div>
   </dialog>
 
+  <dialog id="crop-dialog">
+    <div class="generate-panel" style="max-width:700px;">
+      <div class="generate-header">
+        <div>
+          <h2>Crop</h2>
+          <div class="generate-subtitle" id="crop-subtitle">FILE NAME</div>
+        </div>
+        <button id="close-crop" class="icon-close" type="button" aria-label="Close">&times;</button>
+      </div>
+
+      <div class="generate-body">
+        <div class="pill-row" id="crop-ratio-row" data-group="crop-ratio">
+          <button type="button" class="pill active" data-ratio="free"><span>Free</span></button>
+          <button type="button" class="pill" data-ratio="1:1"><span>1:1</span></button>
+          <button type="button" class="pill" data-ratio="4:5"><span>4:5</span></button>
+          <button type="button" class="pill" data-ratio="4:3"><span>4:3</span></button>
+          <button type="button" class="pill" data-ratio="16:9"><span>16:9</span></button>
+        </div>
+
+        <div class="crop-stage" id="crop-stage">
+          <img id="crop-image" alt="">
+          <div class="crop-box" id="crop-box">
+            <div class="crop-handle" data-handle="nw"></div>
+            <div class="crop-handle" data-handle="ne"></div>
+            <div class="crop-handle" data-handle="sw"></div>
+            <div class="crop-handle" data-handle="se"></div>
+          </div>
+        </div>
+        <p class="hint" id="crop-dims-hint"></p>
+      </div>
+
+      <div class="generate-footer">
+        <button type="button" id="cancel-crop" class="btn btn-ghost">Cancel</button>
+        <button type="button" id="apply-crop" class="btn btn-dark">Apply Crop</button>
+      </div>
+    </div>
+  </dialog>
+
   <script src="../js/projects.js"></script>
   <script src="builder.js"></script>
 </body>
