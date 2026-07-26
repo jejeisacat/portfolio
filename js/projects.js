@@ -128,7 +128,7 @@ const PROJECTS = [
         slug: "rupel",
         name: "Rupel",
         href: "rupel.html",
-        thumb: "assets/images/rupel/rupel-03.jpg",
+        thumb: "assets/images/rupel/rupel-08.jpg",
         meta: "BADMARLON"
       },
       {
