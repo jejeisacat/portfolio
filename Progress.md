@@ -135,10 +135,13 @@ are never overwritten, only missing ones get added.
   Photos show as a **grid, up to 4 per row** (`.photo-list` / `.photo-card` in
   `builder.css`), each card with: drag to reorder, alt text, a &#9733; button to pick
   which one is the **card image** used on the intro page's pile (defaults to the first
-  photo if none is pinned), and a &#10530; **resize** button that re-encodes just that
-  photo to a new max dimension via canvas (prompts for the target size; works for
-  newly-added photos and, best-effort, for on-disk ones — falls back to an error message
-  if the browser won't allow reading that file into a canvas).
+  photo if none is pinned), a &#9986; **crop** button that opens an in-browser crop dialog
+  (drag the box to move it, drag a corner handle to resize, optional locked ratio via
+  Free/1:1/4:5/4:3/16:9 pills, Apply Crop re-encodes just that photo via canvas), and a
+  &#10530; **resize** button that re-encodes just that photo to a new max dimension via
+  canvas (prompts for the target size; works for newly-added photos and, best-effort, for
+  on-disk ones — falls back to an error message if the browser won't allow reading that
+  file into a canvas).
 - **Generate button** opens a settings dialog (Language EN/KO, Tone Reference, Voice,
   Length, Structure, Photo Flow, Emphasis, Tone Notes) and fills tagline/overview (and
   photos, where Claude already sourced some) straight into the fields — no API call, no
