@@ -607,6 +607,20 @@ function loadState() {
         repaired = true;
       }
     });
+
+    // Migrate single-language tagline/overview into the EN/KO pair so Generate
+    // can hold both at once. Guess which language the existing text is in by
+    // checking for Hangul, and leave the other language blank (Generate fills
+    // it in later) rather than guessing content that was never written.
+    if (p.activeLang === undefined) {
+      const isKorean = /[가-힣]/.test(p.overview || p.tagline || "");
+      p.activeLang = isKorean ? "ko" : "en";
+      p.taglineEn = p.taglineEn ?? (isKorean ? "" : (p.tagline || ""));
+      p.overviewEn = p.overviewEn ?? (isKorean ? "" : (p.overview || ""));
+      p.taglineKo = p.taglineKo ?? (isKorean ? (p.tagline || "") : "");
+      p.overviewKo = p.overviewKo ?? (isKorean ? (p.overview || "") : "");
+      repaired = true;
+    }
   });
 
   if (localStorage.getItem(SEEDED_KEY) !== SEED_VERSION) {
@@ -631,6 +645,13 @@ function ensureDefaultsSeeded() {
       // literals) — without one, every photo compares equal to `undefined ===
       // undefined` and the cover-photo star lights up on all of them at once.
       proj.photos = proj.photos.map((ph) => ({ id: uid(), ...ph }));
+      // DEFAULT_PROJECTS only carries English copy; seed it into the EN slot so
+      // Generate can add a Korean draft alongside it without losing this text.
+      proj.activeLang = "en";
+      proj.taglineEn = proj.tagline || "";
+      proj.overviewEn = proj.overview || "";
+      proj.taglineKo = "";
+      proj.overviewKo = "";
       projects.push(proj);
     }
 
@@ -954,6 +975,11 @@ function newProject() {
     year: "",
     type: "",
     overview: "",
+    activeLang: "en",
+    taglineEn: "",
+    overviewEn: "",
+    taglineKo: "",
+    overviewKo: "",
     photos: [],
     coverPhotoId: null,
   };
@@ -1006,7 +1032,11 @@ function renderEditor() {
   panel.innerHTML = `
     <div class="field-group generate-row">
       <button id="generate-btn" class="btn btn-dark btn-small" type="button">&#10022; Generate</button>
-      <span class="hint">언어·톤·길이를 고르면 Claude가 태그라인·개요를 채워요. API 키 필요 없음.</span>
+      <div class="lang-toggle" id="overview-lang-toggle" role="group" aria-label="Draft language">
+        <button type="button" class="lang-pill ${p.activeLang !== "ko" ? "active" : ""}" data-lang="en">EN</button>
+        <button type="button" class="lang-pill ${p.activeLang === "ko" ? "active" : ""}" data-lang="ko">KO</button>
+      </div>
+      <span class="hint">Generate를 누르면 영문·한글 태그라인·개요를 한 번에 만들어요. EN/KO 버튼으로 보여지는 언어를 바꿀 수 있어요. API 키 필요 없음.</span>
     </div>
     <div class="field-group">
       <label for="f-name">Project Name (소분류)</label>
@@ -1062,14 +1092,12 @@ function renderEditor() {
   bindEditorEvents();
 }
 
-// Fills tagline/overview/photos straight into the project record according to
-// the Generate dialog's settings — no API call, no copy-paste. Known projects
-// pick from pre-written copy in AI_CONTENT (by language, then trimmed/
-// reshaped by length & structure); anything new falls back to a plain local
-// template built from whatever fields are already filled in.
-function applyGeneratedContent(p, settings) {
+// Builds tagline/overview text for a single language — pure, no mutation.
+// Known projects pick from pre-written copy in AI_CONTENT (by language, then
+// trimmed/reshaped by length & structure); anything new falls back to a plain
+// local template built from whatever fields are already filled in.
+function buildGeneratedContent(p, settings, lang) {
   const preset = AI_CONTENT[p.slug];
-  const lang = settings.language === "ko" ? "ko" : "en";
   let tagline, paragraphs, photosPreset, note;
 
   if (preset?.[lang]) {
@@ -1107,10 +1135,30 @@ function applyGeneratedContent(p, settings) {
     paragraphs = [...paragraphs, emphasis];
   }
 
-  p.tagline = tagline;
-  p.overview = settings.structure === "single" ? paragraphs.join(" ") : paragraphs.join("\n\n");
+  const overview = settings.structure === "single" ? paragraphs.join(" ") : paragraphs.join("\n\n");
+  return { tagline, overview, photosPreset, note };
+}
+
+// Generates BOTH English and Korean drafts at once and stores them side by
+// side on the project, so the two lang-toggle buttons in the editor can
+// switch between them without regenerating. The Language pill only decides
+// which of the two becomes the one shown/edited right after this call.
+function applyGeneratedContent(p, settings) {
+  const en = buildGeneratedContent(p, settings, "en");
+  const ko = buildGeneratedContent(p, settings, "ko");
+
+  p.taglineEn = en.tagline;
+  p.overviewEn = en.overview;
+  p.taglineKo = ko.tagline;
+  p.overviewKo = ko.overview;
   p.generateSettings = settings;
 
+  const activeLang = settings.language === "ko" ? "ko" : "en";
+  p.activeLang = activeLang;
+  p.tagline = activeLang === "ko" ? ko.tagline : en.tagline;
+  p.overview = activeLang === "ko" ? ko.overview : en.overview;
+
+  const photosPreset = en.photosPreset || ko.photosPreset;
   if (photosPreset?.length && (!p.photos.length || settings.photoFlow === "detail-wide" || settings.photoFlow === "wide-detail")) {
     let photos = p.photos.length ? p.photos : photosPreset.map((ph) => ({ id: uid(), ...ph }));
     if (settings.photoFlow === "detail-wide" || settings.photoFlow === "wide-detail") {
@@ -1126,7 +1174,19 @@ function applyGeneratedContent(p, settings) {
   renderProjectList();
   renderPreview();
 
+  const note = en.note || ko.note;
   if (note) setTimeout(() => alert(note), 50);
+}
+
+// Switches which language's draft is showing/editable in the Tagline/Overview
+// fields, without touching the other language's stored text.
+function setActiveLang(p, lang) {
+  p.activeLang = lang === "ko" ? "ko" : "en";
+  p.tagline = p.activeLang === "ko" ? (p.taglineKo || "") : (p.taglineEn || "");
+  p.overview = p.activeLang === "ko" ? (p.overviewKo || "") : (p.overviewEn || "");
+  saveState();
+  renderEditor();
+  renderPreview();
 }
 
 let generateTargetProjectId = null;
@@ -1184,8 +1244,13 @@ function initGenerateDialog() {
       dialog.close();
       return;
     }
-    const hasContent = p.tagline.trim() || p.overview.trim();
-    if (hasContent && !confirm("이미 입력된 태그라인/개요를 새 내용으로 덮어쓸까요?")) return;
+    // Only ask before overwriting if the current text was hand-typed and
+    // doesn't already match a stored EN/KO draft — regenerating a project
+    // that's already showing generated text is not destructive, so don't
+    // block on a confirm() the user has to notice and click through.
+    const current = (p.overview || "").trim();
+    const isCustom = current && current !== (p.overviewEn || "").trim() && current !== (p.overviewKo || "").trim();
+    if (isCustom && !confirm("Overview에 직접 입력한 내용이 있어요. 새로 생성하면 덮어써요 — 계속할까요?")) return;
 
     const settings = {
       language: "en",
@@ -1217,6 +1282,10 @@ function bindEditorEvents() {
   const categorySelect = document.getElementById("f-category");
 
   document.getElementById("generate-btn").addEventListener("click", () => openGenerateDialog(p));
+
+  document.querySelectorAll("#overview-lang-toggle .lang-pill").forEach((btn) => {
+    btn.addEventListener("click", () => setActiveLang(p, btn.dataset.lang));
+  });
 
   nameInput.addEventListener("input", () => {
     p.name = nameInput.value;
@@ -1259,12 +1328,25 @@ function bindEditorEvents() {
       renderPreview();
     });
   };
-  bind("f-tagline", "tagline");
   bind("f-client", "client");
   bind("f-role", "role");
   bind("f-year", "year");
   bind("f-type", "type");
-  bind("f-overview", "overview");
+
+  // Tagline/Overview mirror into the EN/KO store that matches whichever
+  // language is currently active, so manual edits survive toggling away and back.
+  const bindLangField = (id, field, fieldEn, fieldKo) => {
+    const el = document.getElementById(id);
+    el.addEventListener("input", () => {
+      p[field] = el.value;
+      if (p.activeLang === "ko") p[fieldKo] = el.value;
+      else p[fieldEn] = el.value;
+      saveState();
+      renderPreview();
+    });
+  };
+  bindLangField("f-tagline", "tagline", "taglineEn", "taglineKo");
+  bindLangField("f-overview", "overview", "overviewEn", "overviewKo");
 
   document.getElementById("photo-input").addEventListener("change", async (e) => {
     const files = Array.from(e.target.files || []);
