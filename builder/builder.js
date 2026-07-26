@@ -1286,8 +1286,8 @@ function bindEditorEvents() {
 
   document.getElementById("export-btn").addEventListener("click", exportProject);
   document.getElementById("publish-btn").addEventListener("click", () => publishProject(p));
-  document.getElementById("gh-settings-btn").addEventListener("click", () => {
-    configureGithub();
+  document.getElementById("gh-settings-btn").addEventListener("click", async () => {
+    await configureGithub();
     renderEditor();
   });
 }
@@ -1728,28 +1728,64 @@ function saveGithubConfig(config) {
   localStorage.setItem(GITHUB_KEY, JSON.stringify(config));
 }
 
-function configureGithub() {
-  const current = getGithubConfig();
-  const repo = prompt("깃허브 저장소 (owner/repo 형식)", current.repo || "jejeisacat/portfolio");
-  if (!repo) return null;
-  const token = prompt(
-    "깃허브 Personal Access Token (repo 권한)\n" +
-    "이미 등록했다면 비워두고 확인을 눌러 그대로 두세요.",
-    ""
-  );
-  const config = { repo: repo.trim(), token: token ? token.trim() : current.token || "" };
-  saveGithubConfig(config);
-  return config;
+// A real dialog instead of two back-to-back prompt()s — those were easy to
+// fumble (miss the second popup, hit Cancel by reflex) and left the token
+// unset with no clear signal why Publish then failed.
+function openGithubSettingsDialog() {
+  return new Promise((resolve) => {
+    const dialog = document.getElementById("github-settings-dialog");
+    const repoInput = document.getElementById("gh-repo-input");
+    const tokenInput = document.getElementById("gh-token-input");
+    const saveBtn = document.getElementById("save-github-settings");
+    const cancelBtn = document.getElementById("cancel-github-settings");
+    const closeBtn = document.getElementById("close-github-settings");
+
+    const current = getGithubConfig();
+    repoInput.value = current.repo || "jejeisacat/portfolio";
+    tokenInput.value = current.token || "";
+
+    const cleanup = () => {
+      saveBtn.removeEventListener("click", onSave);
+      cancelBtn.removeEventListener("click", onCancel);
+      closeBtn.removeEventListener("click", onCancel);
+    };
+    const onSave = () => {
+      const repo = repoInput.value.trim();
+      const token = tokenInput.value.trim();
+      if (!repo || !token) {
+        alert("저장소(owner/repo)와 토큰을 둘 다 입력해 주세요.");
+        return;
+      }
+      const config = { repo, token };
+      saveGithubConfig(config);
+      cleanup();
+      dialog.close();
+      resolve(config);
+    };
+    const onCancel = () => {
+      cleanup();
+      dialog.close();
+      resolve(null);
+    };
+
+    saveBtn.addEventListener("click", onSave);
+    cancelBtn.addEventListener("click", onCancel);
+    closeBtn.addEventListener("click", onCancel);
+    dialog.showModal();
+  });
 }
 
-function ensureGithubConfig() {
+// Used by the explicit "깃허브 설정" link — always opens the dialog so an
+// existing token can be reviewed or replaced.
+function configureGithub() {
+  return openGithubSettingsDialog();
+}
+
+async function ensureGithubConfig() {
   const current = getGithubConfig();
   if (current.repo && current.token) return current;
-  const configured = configureGithub();
-  if (!configured || !configured.repo || !configured.token) {
-    alert("깃허브 저장소와 토큰이 모두 필요해요.");
-    return null;
-  }
+  const configured = await openGithubSettingsDialog();
+  if (!configured) return null;
   return configured;
 }
 
@@ -1804,7 +1840,7 @@ async function githubPutFile(config, path, content, { isBase64 = false, message 
 }
 
 async function publishProject(p) {
-  const config = ensureGithubConfig();
+  const config = await ensureGithubConfig();
   if (!config) return;
 
   let html;
