@@ -1046,8 +1046,15 @@ function renderEditor() {
     ${p.photos.some((ph) => ph.src) ? `<p class="hint">이미 <code>assets/images/</code>에 있는 사진은 Export 때 다시 다운로드하지 않아요. 슬러그를 바꿨다면 그 폴더도 같이 이름을 바꿔주세요.</p>` : ""}
 
     <div class="export-section">
-      <button id="export-btn" class="btn btn-dark" type="button">Export Page &amp; Images</button>
-      <p class="hint">html 파일과 새로 추가한 사진이 다운로드돼요. 사진은 <code>assets/images/${escapeHtml(p.slug)}/</code>에, html은 포트폴리오 루트에 넣고, 왼쪽의 <strong>Copy PROJECTS Array</strong>로 목차를 갱신하세요.</p>
+      <div class="export-row">
+        <button id="publish-btn" class="btn btn-dark" type="button">&#8593; Publish</button>
+        <button id="export-btn" class="btn btn-ghost" type="button">Export Page &amp; Images</button>
+      </div>
+      <p class="hint">
+        <strong>Publish</strong>는 이 페이지·새 사진·목차 전체를 깃허브(<code id="gh-repo-hint">${escapeHtml(getGithubConfig().repo || "설정 필요")}</code>)에 바로 올려요 — Vercel이 연결돼 있으면 자동 배포까지 이어져요.
+        <button id="gh-settings-btn" class="link-btn" type="button">깃허브 설정</button>
+      </p>
+      <p class="hint">Export는 예전처럼 파일만 다운로드해요 — 수동으로 옮기고 싶을 때 쓰세요.</p>
     </div>
   `;
 
@@ -1278,6 +1285,11 @@ function bindEditorEvents() {
   });
 
   document.getElementById("export-btn").addEventListener("click", exportProject);
+  document.getElementById("publish-btn").addEventListener("click", () => publishProject(p));
+  document.getElementById("gh-settings-btn").addEventListener("click", () => {
+    configureGithub();
+    renderEditor();
+  });
 }
 
 function renderEditor_updatePhotoCount() {
@@ -1644,23 +1656,17 @@ function renderPreview() {
 
 // ---------- export ----------
 
-function exportProject() {
-  const p = currentProject();
-  if (!p) return;
-  if (!p.photos.length) {
-    alert("사진을 먼저 추가해 주세요.");
-    return;
-  }
-  if (!p.slug) {
-    alert("슬러그(파일명)를 입력해 주세요.");
-    return;
-  }
+// Shared by Export and Publish: validates the project and builds the final
+// page HTML exactly as it'll live at the portfolio root.
+function buildExportableHTML(p) {
+  if (!p.photos.length) throw new Error("사진을 먼저 추가해 주세요.");
+  if (!p.slug) throw new Error("슬러그(파일명)를 입력해 주세요.");
 
   const groupName = getGroupOfProject(p.id)?.name || null;
   const srcFn = (ph, i) => `assets/images/${p.slug}/${p.slug}-${String(i + 1).padStart(2, "0")}.jpg`;
   const body = pageBodyHTML(p, { srcFn, indexList: "", groupName });
 
-  const html = `<!doctype html>
+  return `<!doctype html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -1673,6 +1679,19 @@ function exportProject() {
 </body>
 </html>
 `;
+}
+
+function exportProject() {
+  const p = currentProject();
+  if (!p) return;
+
+  let html;
+  try {
+    html = buildExportableHTML(p);
+  } catch (err) {
+    alert(err.message);
+    return;
+  }
 
   downloadBlob(new Blob([html], { type: "text/html" }), `${p.slug}.html`);
 
@@ -1691,6 +1710,167 @@ function exportProject() {
     `사진은 assets/images/${p.slug}/ 폴더에, html은 포트폴리오 루트 폴더에 넣어주세요.\n` +
     `왼쪽의 "Copy PROJECTS Array" 버튼으로 사이트 목차 전체를 갱신할 수 있어요.`
   );
+}
+
+// ---------- publish (GitHub Contents API — no git/gh CLI needed) ----------
+
+const GITHUB_KEY = "portfolioBuilder.github";
+
+function getGithubConfig() {
+  try {
+    return JSON.parse(localStorage.getItem(GITHUB_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function saveGithubConfig(config) {
+  localStorage.setItem(GITHUB_KEY, JSON.stringify(config));
+}
+
+function configureGithub() {
+  const current = getGithubConfig();
+  const repo = prompt("깃허브 저장소 (owner/repo 형식)", current.repo || "jejeisacat/portfolio");
+  if (!repo) return null;
+  const token = prompt(
+    "깃허브 Personal Access Token (repo 권한)\n" +
+    "이미 등록했다면 비워두고 확인을 눌러 그대로 두세요.",
+    ""
+  );
+  const config = { repo: repo.trim(), token: token ? token.trim() : current.token || "" };
+  saveGithubConfig(config);
+  return config;
+}
+
+function ensureGithubConfig() {
+  const current = getGithubConfig();
+  if (current.repo && current.token) return current;
+  const configured = configureGithub();
+  if (!configured || !configured.repo || !configured.token) {
+    alert("깃허브 저장소와 토큰이 모두 필요해요.");
+    return null;
+  }
+  return configured;
+}
+
+function githubPathEncode(path) {
+  return path.split("/").map(encodeURIComponent).join("/");
+}
+
+// btoa() only handles Latin-1 — this survives Korean/emoji/etc in text content.
+function utf8ToBase64(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+
+async function githubRequest(config, path, options = {}) {
+  const res = await fetch(`https://api.github.com/repos/${config.repo}/contents/${githubPathEncode(path)}`, {
+    ...options,
+    headers: {
+      Authorization: `token ${config.token}`,
+      Accept: "application/vnd.github+json",
+      ...(options.headers || {}),
+    },
+  });
+  return res;
+}
+
+async function githubGetSha(config, path) {
+  const res = await githubRequest(config, path);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`GitHub GET ${path} failed (${res.status})`);
+  const data = await res.json();
+  return data.sha || null;
+}
+
+// content: either a UTF-8 string or a raw base64 string (isBase64: true).
+async function githubPutFile(config, path, content, { isBase64 = false, message } = {}) {
+  const sha = await githubGetSha(config, path);
+  const body = {
+    message: message || `Update ${path}`,
+    content: isBase64 ? content : utf8ToBase64(content),
+  };
+  if (sha) body.sha = sha;
+
+  const res = await githubRequest(config, path, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    throw new Error(`GitHub PUT ${path} failed (${res.status}): ${errText.slice(0, 200)}`);
+  }
+  return res.json();
+}
+
+async function publishProject(p) {
+  const config = ensureGithubConfig();
+  if (!config) return;
+
+  let html;
+  try {
+    html = buildExportableHTML(p);
+  } catch (err) {
+    alert(err.message);
+    return;
+  }
+
+  const btn = document.getElementById("publish-btn");
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+
+  try {
+    btn.textContent = "Publishing… page";
+    await githubPutFile(config, `${p.slug}.html`, html, { message: `Publish ${p.name}` });
+
+    const newPhotos = p.photos
+      .map((ph, i) => ({ ph, i }))
+      .filter(({ ph }) => ph.dataUrl);
+
+    for (let n = 0; n < newPhotos.length; n++) {
+      const { ph, i } = newPhotos[n];
+      btn.textContent = `Publishing… photo ${n + 1}/${newPhotos.length}`;
+      const base64 = ph.dataUrl.split(",")[1];
+      const filename = `${p.slug}-${String(i + 1).padStart(2, "0")}.jpg`;
+      await githubPutFile(config, `assets/images/${p.slug}/${filename}`, base64, {
+        isBase64: true,
+        message: `Add photo for ${p.name}`,
+      });
+    }
+
+    btn.textContent = "Publishing… index";
+    await githubPutFile(
+      config,
+      "js/projects.js",
+      await buildUpdatedProjectsJS(config),
+      { message: `Update PROJECTS index (${p.name})` }
+    );
+
+    alert(`"${p.name}" 퍼블리시 완료! 잠시 후 Vercel에 자동 배포돼요.`);
+  } catch (err) {
+    console.error(err);
+    alert(`퍼블리시 실패: ${err.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
+// Fetches the live js/projects.js from GitHub and swaps in a freshly
+// generated PROJECTS array, leaving the rest of the file (render functions,
+// dialogs) untouched.
+async function buildUpdatedProjectsJS(config) {
+  const res = await githubRequest(config, "js/projects.js");
+  if (!res.ok) throw new Error(`js/projects.js를 가져오지 못했어요 (${res.status})`);
+  const data = await res.json();
+  const current = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ""))));
+
+  const newBlock = projectsArrayJS().trim();
+  const updated = current.replace(/const PROJECTS = \[[\s\S]*?\n\];/, newBlock);
+  if (updated === current && !current.includes(newBlock)) {
+    throw new Error("PROJECTS 배열 패턴을 찾지 못했어요 — js/projects.js 형식이 바뀐 것 같아요.");
+  }
+  return updated;
 }
 
 // ---------- preview size toggle (PC / Mobile) ----------
