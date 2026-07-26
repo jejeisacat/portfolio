@@ -145,12 +145,20 @@ are never overwritten, only missing ones get added.
 - **Generate button** opens a settings dialog (Language EN/KO, Tone Reference, Voice,
   Length, Structure, Photo Flow, Emphasis, Tone Notes) and fills tagline/overview (and
   photos, where Claude already sourced some) straight into the fields — no API call, no
-  copy-paste. For SUGO / Linden Bed / Dan / Peek A Boo / Graphic Works this pulls from
-  hand-written copy (`AI_CONTENT` in `builder.js`); Language/Length/Structure/Photo Flow
-  genuinely change the output. Voice/Tone Reference/Tone Notes are captured and saved per
-  project but don't change the canned text yet. The 16 newer BADMARLON projects aren't in
-  `AI_CONTENT`, so Generate falls back to a simple auto-built template for them (still no
-  API) rather than real researched copy.
+  copy-paste. Each click now writes **both** an English and a Korean draft at once
+  (`taglineEn`/`overviewEn` and `taglineKo`/`overviewKo` on the project record); the
+  Language pill only picks which one is shown/edited immediately after. Two small **EN /
+  KO** toggle buttons next to Generate switch which draft is showing without regenerating,
+  and manual edits are saved into whichever language is currently active so switching back
+  and forth doesn't lose anything. For SUGO / Linden Bed / Dan / Peek A Boo / Graphic Works
+  this pulls from hand-written copy (`AI_CONTENT` in `builder.js`) in both languages;
+  Length/Structure/Photo Flow genuinely change the output. Voice/Tone Reference/Tone Notes
+  are captured and saved per project but don't change the canned text yet. The 16 newer
+  BADMARLON projects aren't in `AI_CONTENT`, so Generate falls back to a simple auto-built
+  template (in both languages) for them instead of real researched copy. Regenerating no
+  longer prompts to overwrite unless the current text was hand-typed and doesn't already
+  match a stored draft — earlier this asked on nearly every click, which was easy to miss
+  and looked like Generate wasn't working at all.
 - **Right**: live preview iframe using the site's real `css/style.css`, with a PC/Mobile
   toggle. PC always renders a real 1440px-wide layout internally (so it never trips the
   site's mobile breakpoint) and is scaled down to fit — sidebar and content show side by
