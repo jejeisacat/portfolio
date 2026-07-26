@@ -121,7 +121,7 @@ const PROJECTS = [
         slug: "volvo-x-badmarlon",
         name: "Volvo X Bad Marlon",
         href: "volvo-x-badmarlon.html",
-        thumb: "assets/images/volvo-x-badmarlon/volvo-x-badmarlon-03.jpg",
+        thumb: "assets/images/volvo-x-badmarlon/volvo-x-badmarlon-02.jpg",
         meta: "BADMARLON"
       },
       {
