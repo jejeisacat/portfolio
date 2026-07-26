@@ -1317,6 +1317,7 @@ function renderPhotoList() {
         </div>
         <div class="photo-card-tools">
           <span class="drag-handle" title="Drag to reorder">&#8942;&#8942;</span>
+          <button class="crop-photo" data-id="${ph.id}" title="Crop">&#9986;</button>
           <button class="resize-photo" data-id="${ph.id}" title="Resize">&#10530;</button>
           <button class="remove-photo" data-index="${i}" title="Remove">&times;</button>
         </div>
@@ -1350,6 +1351,13 @@ function renderPhotoList() {
 
   list.querySelectorAll("button.resize-photo").forEach((btn) => {
     btn.addEventListener("click", () => handleResizePhoto(p, btn.dataset.id));
+  });
+
+  list.querySelectorAll("button.crop-photo").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const ph = p.photos.find((x) => x.id === btn.dataset.id);
+      if (ph) openCropDialog(p, ph);
+    });
   });
 
   list.querySelectorAll("input.alt-input").forEach((input) => {
@@ -1435,6 +1443,210 @@ async function handleResizePhoto(p, photoId) {
     alert("이 사진은 이 브라우저에서 리사이즈할 수 없어요 (보안 정책 때문일 수 있어요). 원본 파일 크기를 직접 줄여서 다시 추가해 주세요.");
     console.error(err);
   }
+}
+
+// ---------- crop dialog ----------
+
+const CROP_RATIOS = { free: null, "1:1": 1, "4:5": 4 / 5, "4:3": 4 / 3, "16:9": 16 / 9 };
+
+// All state for the crop box lives here while the dialog is open — sized in
+// on-screen (displayed) pixels; converted to natural image pixels only at
+// Apply time. Cleared when the dialog closes.
+let cropState = null;
+
+function clampCropBox(box, stageW, stageH, ratio) {
+  const MIN = 24;
+  let { x, y, w, h } = box;
+  w = Math.max(MIN, Math.min(w, stageW));
+  h = Math.max(MIN, Math.min(h, stageH));
+  if (ratio) {
+    // Re-derive height from width to keep the ratio exact, then re-clamp.
+    h = w / ratio;
+    if (h > stageH) { h = stageH; w = h * ratio; }
+  }
+  x = Math.max(0, Math.min(x, stageW - w));
+  y = Math.max(0, Math.min(y, stageH - h));
+  return { x, y, w, h };
+}
+
+function renderCropBox() {
+  if (!cropState) return;
+  const el = document.getElementById("crop-box");
+  const { x, y, w, h } = cropState.box;
+  el.style.left = `${x}px`;
+  el.style.top = `${y}px`;
+  el.style.width = `${w}px`;
+  el.style.height = `${h}px`;
+
+  const scale = cropState.naturalW / cropState.displayW;
+  const nw = Math.round(w * scale);
+  const nh = Math.round(h * scale);
+  document.getElementById("crop-dims-hint").textContent = `${nw} × ${nh}px 로 잘려요.`;
+}
+
+function openCropDialog(project, photo) {
+  const dialog = document.getElementById("crop-dialog");
+  const img = document.getElementById("crop-image");
+  const stage = document.getElementById("crop-stage");
+
+  document.getElementById("crop-subtitle").textContent = photo.name || "";
+  dialog.querySelectorAll('[data-group="crop-ratio"] .pill').forEach((b) => {
+    b.classList.toggle("active", b.dataset.ratio === "free");
+  });
+
+  img.src = photoSrc(photo);
+  img.onload = () => {
+    requestAnimationFrame(() => {
+      const rect = img.getBoundingClientRect();
+      const stageRect = stage.getBoundingClientRect();
+      const displayW = rect.width;
+      const displayH = rect.height;
+      const offsetX = rect.left - stageRect.left;
+      const offsetY = rect.top - stageRect.top;
+
+      cropState = {
+        project,
+        photo,
+        naturalW: img.naturalWidth,
+        naturalH: img.naturalHeight,
+        displayW,
+        displayH,
+        offsetX,
+        offsetY,
+        ratio: null,
+        box: { x: displayW * 0.1, y: displayH * 0.1, w: displayW * 0.8, h: displayH * 0.8 },
+      };
+      // Position the box relative to the stage, not the image, since the
+      // image is centered within a taller/wider stage box.
+      document.getElementById("crop-box").style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+      renderCropBox();
+    });
+  };
+
+  dialog.showModal();
+}
+
+function closeCropDialog() {
+  document.getElementById("crop-dialog").close();
+  cropState = null;
+}
+
+function initCropDialog() {
+  const dialog = document.getElementById("crop-dialog");
+  const stage = document.getElementById("crop-stage");
+  const box = document.getElementById("crop-box");
+  if (!dialog || !stage || !box) return;
+
+  document.getElementById("close-crop").addEventListener("click", closeCropDialog);
+  document.getElementById("cancel-crop").addEventListener("click", closeCropDialog);
+  dialog.addEventListener("click", (e) => { if (e.target === dialog) closeCropDialog(); });
+
+  dialog.querySelectorAll('[data-group="crop-ratio"] .pill').forEach((btn) => {
+    btn.addEventListener("click", () => {
+      dialog.querySelectorAll('[data-group="crop-ratio"] .pill').forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      if (!cropState) return;
+      cropState.ratio = CROP_RATIOS[btn.dataset.ratio];
+      cropState.box = clampCropBox(cropState.box, cropState.displayW, cropState.displayH, cropState.ratio);
+      renderCropBox();
+    });
+  });
+
+  // Move the whole box by dragging its body.
+  box.addEventListener("pointerdown", (e) => {
+    if (e.target.classList.contains("crop-handle") || !cropState) return;
+    e.preventDefault();
+    const startX = e.clientX, startY = e.clientY;
+    const start = { ...cropState.box };
+    box.setPointerCapture(e.pointerId);
+
+    const onMove = (ev) => {
+      cropState.box = clampCropBox(
+        { ...start, x: start.x + (ev.clientX - startX), y: start.y + (ev.clientY - startY) },
+        cropState.displayW, cropState.displayH, cropState.ratio
+      );
+      renderCropBox();
+    };
+    const onUp = () => {
+      box.removeEventListener("pointermove", onMove);
+      box.removeEventListener("pointerup", onUp);
+    };
+    box.addEventListener("pointermove", onMove);
+    box.addEventListener("pointerup", onUp);
+  });
+
+  // Resize from whichever corner handle is grabbed, anchored at the opposite corner.
+  box.querySelectorAll(".crop-handle").forEach((handle) => {
+    handle.addEventListener("pointerdown", (e) => {
+      if (!cropState) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const corner = handle.dataset.handle;
+      const startX = e.clientX, startY = e.clientY;
+      const start = { ...cropState.box };
+      handle.setPointerCapture(e.pointerId);
+
+      const anchorX = corner.includes("w") ? start.x + start.w : start.x;
+      const anchorY = corner.includes("n") ? start.y + start.h : start.y;
+
+      const onMove = (ev) => {
+        const dx = ev.clientX - startX;
+        const dy = ev.clientY - startY;
+        let x1 = corner.includes("w") ? start.x + dx : start.x;
+        let y1 = corner.includes("n") ? start.y + dy : start.y;
+        let w = Math.abs(anchorX - x1);
+        let h = Math.abs(anchorY - y1);
+        let x = Math.min(anchorX, x1);
+        let y = Math.min(anchorY, y1);
+        if (cropState.ratio) h = w / cropState.ratio;
+        // Keep the box anchored at the fixed corner even after the ratio re-derives h.
+        y = corner.includes("n") ? anchorY - h : anchorY;
+        x = corner.includes("w") ? anchorX - w : anchorX;
+        cropState.box = clampCropBox({ x, y, w, h }, cropState.displayW, cropState.displayH, null);
+        renderCropBox();
+      };
+      const onUp = () => {
+        handle.removeEventListener("pointermove", onMove);
+        handle.removeEventListener("pointerup", onUp);
+      };
+      handle.addEventListener("pointermove", onMove);
+      handle.addEventListener("pointerup", onUp);
+    });
+  });
+
+  document.getElementById("apply-crop").addEventListener("click", () => {
+    if (!cropState) return;
+    const { project, photo, naturalW, displayW, box } = cropState;
+    const scale = naturalW / displayW;
+    const sx = Math.round(box.x * scale);
+    const sy = Math.round(box.y * scale);
+    const sw = Math.round(box.w * scale);
+    const sh = Math.round(box.h * scale);
+
+    const img = document.getElementById("crop-image");
+    const canvas = document.createElement("canvas");
+    canvas.width = sw;
+    canvas.height = sh;
+    canvas.getContext("2d").drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+
+    let dataUrl;
+    try {
+      dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+    } catch (err) {
+      alert("이 사진은 이 브라우저에서 자를 수 없어요 (보안 정책 때문일 수 있어요).");
+      console.error(err);
+      return;
+    }
+
+    photo.dataUrl = dataUrl;
+    delete photo.src;
+    photo.width = sw;
+    photo.height = sh;
+    saveState();
+    renderPhotoList();
+    renderPreview();
+    closeCropDialog();
+  });
 }
 
 // ---------- shared page markup (used by both preview + export) ----------
@@ -1947,6 +2159,7 @@ document.getElementById("new-project-btn").addEventListener("click", newProject)
 document.getElementById("copy-projects-btn").addEventListener("click", copyProjectsArray);
 initPreviewToggle();
 initGenerateDialog();
+initCropDialog();
 
 loadState();
 renderProjectList();
