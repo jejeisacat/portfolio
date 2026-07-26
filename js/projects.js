@@ -272,6 +272,10 @@ function initDeckDrag(scope) {
       startTx = parseFloat(item.style.getPropertyValue("--tx")) || 0;
       startTy = parseFloat(item.style.getPropertyValue("--ty")) || 0;
       item.setPointerCapture(e.pointerId);
+      // Claim front-most the instant it's picked up, not only once the drag
+      // threshold is crossed — a click that never turns into a drag still
+      // shouldn't leave the card looking picked-up-then-abandoned underneath.
+      item.style.zIndex = String(++deckFrontZ);
     });
 
     item.addEventListener("pointermove", (e) => {
@@ -281,7 +285,6 @@ function initDeckDrag(scope) {
       if (!dragging && Math.hypot(dx, dy) > 4) {
         dragging = true;
         item.classList.add("dragging");
-        item.style.zIndex = String(++deckFrontZ);
       }
       if (dragging) {
         item.style.setProperty("--tx", `${startTx + dx}px`);
