@@ -9,6 +9,19 @@ separate local "Builder" admin tool for authoring project detail pages without h
 HTML. Everything runs by opening `.html` files directly in a browser — no server, no
 npm/node, no build step.
 
+## Live deployment
+
+- **Custom domain**: https://www.yujihada.com (Cloudflare DNS → Vercel, both records
+  set to "DNS only", not proxied — required for Vercel's SSL to issue correctly)
+- **Vercel URL**: https://portfolio-pink-omega-69.vercel.app
+- **GitHub repo**: https://github.com/jejeisacat/portfolio (public) — Vercel auto-deploys
+  every push to `main`. No build step configured (Framework Preset: Other) since this is
+  plain static HTML/CSS/JS.
+- This machine has no Xcode Command Line Tools installed, so there's no local `git`/`gh`/
+  `vercel` CLI. The initial repo and all 154 files were pushed using GitHub's REST
+  Contents API directly via `curl` (base64-encoding each file), not git. The Builder's
+  Publish button (below) uses the same API approach from the browser.
+
 ## Site structure
 
 ```
@@ -142,7 +155,16 @@ are never overwritten, only missing ones get added.
 - **Export Page & Images** downloads `<slug>.html` (identical template to the real pages)
   plus any newly-added photos (already-on-disk photos aren't re-downloaded). You then move
   the file/photos into place by hand and paste the "Copy PROJECTS Array" output into
-  `js/projects.js`.
+  `js/projects.js`. Kept as a manual fallback.
+- **Publish** (next to Export) pushes the project live with one click, no download/move
+  step: it PUTs the page HTML, any new photos, and a freshly-regenerated `js/projects.js`
+  straight to the GitHub repo via the Contents API (`fetch`, base64-encoded content) —
+  Vercel then auto-deploys. First use prompts for the GitHub repo (`owner/repo`) and a
+  Personal Access Token (`repo` scope); both are saved in that browser's `localStorage`
+  only (`portfolioBuilder.github`), never written to any file. "깃허브 설정" next to the
+  button reopens that prompt if the token needs replacing. Requires being online and the
+  token having write access to the repo — Chrome/Edge/Safari all fine here since it's
+  plain `fetch`, not the File System Access API.
 
 ## Known limitations / honesty notes
 
