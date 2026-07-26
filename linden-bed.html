@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linden Bed — BADMARLON — Yujiyeon</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-project="linden-bed">
+<header class="site-header">
+  <div class="site-title">YUJIYEON</div>
+  <nav class="site-nav">
+    <button id="open-info" type="button">Information</button>
+    <a href="https://www.instagram.com/jiy.y" target="_blank" rel="noopener">Instagram</a>
+    <button id="open-contact" type="button">Email</button>
+  </nav>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="section-label">Index</div>
+    <ul class="project-index" id="project-index"></ul>
+
+    <footer>All Rights Reserved &copy; 2026</footer>
+  </aside>
+
+  <main class="main">
+    <div class="main-inner">
+      <a class="back-link" href="index.html">&larr; All Projects</a>
+
+      <div class="project-head">
+        <div class="idx-label">BADMARLON &mdash; Pet Furniture</div>
+        <h1>Linden Bed</h1>
+        <p class="tagline">A raised daybed for small dogs, in solid ash</p>
+      </div>
+
+      <div class="gallery">
+        <img src="assets/images/linden-bed/linden-bed-01.jpg" alt="Linden Bed by a curtained window" width="2048" height="1365" loading="lazy">
+        <img src="assets/images/linden-bed/linden-bed-02.jpg" alt="Linden Bed in an arched nook" width="2048" height="2048" loading="lazy">
+        <img src="assets/images/linden-bed/linden-bed-03.jpg" alt="A poodle resting on the Linden Bed" width="2048" height="1365" loading="lazy">
+        <img src="assets/images/linden-bed/linden-bed-04.jpg" alt="Linden Bed beside a potted plant" width="2048" height="1365" loading="lazy">
+        <img src="assets/images/linden-bed/linden-bed-05.jpg" alt="Linden Bed with feeding bowls and a dog walking by" width="2048" height="1365" loading="lazy">
+        <img src="assets/images/linden-bed/linden-bed-06.jpg" alt="Linden Bed in a sunlit room with a dog and its owner" width="2048" height="1365" loading="lazy">
+      </div>
+
+      <div class="details-grid">
+        <div>
+          <h2>Details</h2>
+          <div class="details-list">
+            <div class="row"><span>Client</span><span>BADMARLON</span></div>
+            <div class="row"><span>Role</span><span>Product Design</span></div>
+            <div class="row"><span>Year</span><span>2023</span></div>
+            <div class="row"><span>Type</span><span>Pet Furniture, Solid Wood</span></div>
+          </div>
+        </div>
+        <div class="description">
+          <h2>Overview</h2>
+          <p>Linden Bed was designed to disappear into a room the way pet furniture rarely does. Solid ash joinery, a low raised frame, and two densities of cushioning give it the proportions of a small daybed rather than a plastic crate — something that belongs next to a sofa, not under one.</p>
+          <p>The brief from BADMARLON was simple: make something an owner would want to keep out, in a home they already cared about. That shaped every decision — the wood species, the two upholstery colorways, and the low, open profile that keeps the piece from ever reading as "a dog product" first.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<dialog id="info-dialog">
+  <div class="info-panel">
+    <h2>Information</h2>
+    <p>Yujiyeon is a product designer working across branding and physical product design.</p>
+    <p>hello@yujiyeon.com</p>
+    <button class="close-btn" id="close-info" type="button">Close</button>
+  </div>
+</dialog>
+
+<dialog id="contact-dialog">
+  <div class="contact-panel">
+    <div class="contact-header">
+      <h2>Contact</h2>
+      <button id="close-contact" class="icon-close" type="button" aria-label="Close">&times;</button>
+    </div>
+    <form id="contact-form" class="contact-form">
+      <input type="email" id="contact-from" placeholder="From: (enter your email address)..." required>
+      <textarea id="contact-message" placeholder="Write your message..." required></textarea>
+      <div class="contact-actions">
+        <button type="button" id="cancel-contact" class="btn btn-ghost">Cancel</button>
+        <button type="submit" class="btn btn-dark">Send</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<script src="js/projects.js"></script>
+</body>
+</html>
