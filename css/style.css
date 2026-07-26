@@ -1,0 +1,418 @@
+:root {
+  --bg: #ffffff;
+  --fg: #111111;
+  --muted: #9a9a9a;
+  --border: #e5e5e5;
+  --sidebar-w: 260px;
+  --header-h: 64px;
+}
+
+@font-face {
+  font-family: "Friedel Pro Trial";
+  src: url("../assets/fonts/FriedelProTrial-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body {
+  font-family: "Friedel Pro Trial", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, "Apple SD Gothic Neo", sans-serif;
+  color: var(--fg);
+  background: var(--bg);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+a:hover { opacity: .6; }
+
+.layout { display: flex; min-height: 100vh; }
+
+/* Sidebar — fixed below the top bar, holding just the project Index now
+   that brand / Information / Email / Instagram live in .site-header. */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  padding: 28px 24px;
+  position: fixed;
+  top: var(--header-h);
+  left: 0;
+  height: calc(100vh - var(--header-h));
+  display: flex;
+  flex-direction: column;
+}
+
+.section-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.project-index {
+  list-style: none;
+  margin: 0 0 auto 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.project-index li a,
+.project-index li span {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.project-index li .idx { color: inherit; opacity: .6; font-variant-numeric: tabular-nums; }
+.project-index li span.disabled { cursor: default; }
+.project-index > li.active { position: relative; }
+.project-index > li.active > a,
+.project-index > li.active > span {
+  color: var(--fg);
+  font-weight: 600;
+}
+.project-index > li.active::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: 6px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--fg);
+}
+
+.project-subindex {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.project-subindex li a,
+.project-subindex li span { font-size: 12px; color: var(--muted); }
+.project-subindex li.active { position: relative; }
+.project-subindex li.active > a,
+.project-subindex li.active > span {
+  color: var(--fg);
+  font-weight: 600;
+}
+.project-subindex li.active::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 5px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--fg);
+}
+
+.sidebar footer { color: var(--muted); font-size: 11px; margin-top: 24px; }
+
+/* Main */
+.main { flex: 1; min-width: 0; margin-left: var(--sidebar-w); margin-top: var(--header-h); }
+.main-inner { max-width: 1100px; margin: 0 auto; padding: 28px 40px 80px; }
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 40px;
+}
+
+.project-head { margin-bottom: 40px; }
+.project-head .idx-label { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+.project-head h1 { font-size: 32px; margin: 0 0 8px; font-weight: 600; letter-spacing: -.01em; }
+.project-head .tagline { color: var(--muted); font-size: 15px; margin: 0; }
+
+.gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 56px;
+}
+.gallery img {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: #f2f2f2;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+}
+.details-grid h2 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+  margin: 0 0 16px;
+}
+.details-list { display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+.details-list .row { display: flex; gap: 8px; }
+.details-list .row span:first-child { color: var(--muted); min-width: 64px; }
+.description p { margin: 0 0 16px; font-size: 14px; line-height: 1.75; color: #333; }
+
+/* Information dialog */
+dialog#info-dialog {
+  border: none;
+  border-radius: 4px;
+  padding: 0;
+  max-width: 420px;
+  width: 90%;
+}
+dialog#info-dialog::backdrop { background: rgba(0, 0, 0, .4); }
+.info-panel { padding: 28px; }
+.info-panel h2 { font-size: 15px; margin: 0 0 12px; }
+.info-panel p { font-size: 14px; line-height: 1.7; color: #333; margin: 0 0 12px; }
+.info-panel .close-btn {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Contact dialog */
+dialog#contact-dialog {
+  border: none;
+  border-radius: 8px;
+  padding: 0;
+  width: 90%;
+  max-width: 460px;
+  overflow: hidden;
+}
+dialog#contact-dialog::backdrop { background: rgba(0, 0, 0, .5); }
+
+.contact-panel { display: flex; flex-direction: column; height: min(640px, 80vh); }
+
+.contact-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.contact-header h2 { font-size: 16px; margin: 0; font-weight: 700; }
+
+.icon-close {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: #eee;
+  color: #666;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.icon-close:hover { background: #ddd; }
+
+.contact-form { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+#contact-from {
+  border: none;
+  border-bottom: 1px solid var(--border);
+  padding: 18px 24px;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+  flex-shrink: 0;
+}
+#contact-from::placeholder { color: #b0b0b0; }
+
+#contact-message {
+  flex: 1;
+  border: none;
+  resize: none;
+  padding: 18px 24px;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+  min-height: 0;
+}
+#contact-message::placeholder { color: #b0b0b0; }
+
+.contact-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.btn {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.btn-ghost { background: #eee; color: #333; }
+.btn-ghost:hover { background: #e0e0e0; }
+.btn-dark { background: #111; color: #fff; }
+.btn-dark:hover { background: #000; }
+
+/* Top bar — fixed across every page: brand left, Information/Instagram/Email
+   right. Always visible regardless of scroll. */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  background: var(--bg);
+}
+.site-title { font-weight: 600; font-size: 14px; letter-spacing: .02em; }
+.site-nav { display: flex; align-items: center; gap: 20px; }
+.site-nav button,
+.site-nav a {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  color: inherit;
+}
+/* Deck: all project cards start stacked dead-center, then deal themselves
+   out to a loose scattered arrangement one at a time (staggered), like
+   picking through a stack of photos and setting each one down. One-time
+   entrance, not a loop — see initDeck() in js/projects.js. */
+.deck {
+  position: relative;
+  margin: var(--header-h) auto 0;
+  height: calc(90vh - var(--header-h));
+  min-height: 585px;
+  max-width: 1385px;
+}
+/* Cards render already gathered in a loose pile at dead-center (see
+   GATHERED_LAYOUT in js/projects.js) — no reveal/deal-out animation. Drag any
+   card out to look at it; the Gather button below snaps everything back. */
+.grid-item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 692px;
+  margin: -216.25px 0 0 -346px;
+  display: block;
+  cursor: grab;
+  -webkit-user-drag: none;
+  user-select: none;
+  transform: translate(var(--tx), var(--ty)) rotate(var(--r)) scale(1);
+  opacity: 1;
+  transition: transform .45s cubic-bezier(.2, .8, .2, 1), opacity .2s ease;
+}
+.grid-item:hover {
+  opacity: 1;
+  transform: translate(var(--tx), var(--ty)) rotate(0deg) scale(1.08) translateY(-14px) !important;
+  z-index: 50 !important;
+}
+.grid-item.dragging {
+  cursor: grabbing;
+  transition: none !important;
+  z-index: 999 !important;
+}
+
+.gather-btn {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 90;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  background: #111;
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .18);
+}
+.gather-btn:hover { background: #000; }
+
+.card {
+  display: block;
+  width: 100%;
+  aspect-ratio: 8 / 5;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f2f2f2;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, .18);
+  pointer-events: none;
+}
+.card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+@media (max-width: 720px) {
+  .deck { height: auto; min-height: 0; max-width: 360px; padding: 40px 0; }
+  .grid-item {
+    position: relative;
+    top: auto; left: auto; margin: 0 0 40px;
+    width: 100%;
+    opacity: 1;
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grid-item { transition: none; }
+}
+
+.site-footer {
+  padding: 24px 32px 32px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+@media (max-width: 720px) {
+  .grid { grid-template-columns: 1fr; gap: 40px; padding: 32px 20px; }
+}
+
+@media (max-width: 860px) {
+  .layout { flex-direction: column; margin-top: var(--header-h); }
+  .sidebar {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    height: auto;
+  }
+  .main { margin-left: 0; margin-top: 0; }
+  .details-grid { grid-template-columns: 1fr; gap: 24px; }
+  .main-inner { padding: 24px 20px 60px; }
+}
