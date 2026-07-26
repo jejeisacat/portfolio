@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Volvo X Bad Marlon — BADMARLON — Yujiyeon</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-project="volvo-x-badmarlon">
+<header class="site-header">
+  <div class="site-title">YUJIYEON</div>
+  <nav class="site-nav">
+    <button id="open-info" type="button">Information</button>
+    <a href="https://www.instagram.com/jiy.y" target="_blank" rel="noopener">Instagram</a>
+    <button id="open-contact" type="button">Email</button>
+  </nav>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="section-label">Index</div>
+    <ul class="project-index" id="project-index"></ul>
+
+    <footer>All Rights Reserved &copy; 2026</footer>
+  </aside>
+
+  <main class="main">
+    <div class="main-inner">
+      <a class="back-link" href="index.html">&larr; All Projects</a>
+
+      <div class="project-head">
+        <div class="idx-label">BADMARLON</div>
+        <h1>Volvo X Bad Marlon</h1>
+        <p class="tagline">A collaboration between Volvo and BADMARLON.</p>
+      </div>
+
+      <div class="gallery">
+        <img src="assets/images/volvo-x-badmarlon/volvo-x-badmarlon-01.jpg" alt="Volvo X Bad Marlon product photo 1" loading="lazy">
+        <img src="assets/images/volvo-x-badmarlon/volvo-x-badmarlon-02.jpg" alt="Volvo X Bad Marlon product photo 2" loading="lazy">
+        <img src="assets/images/volvo-x-badmarlon/volvo-x-badmarlon-03.jpg" alt="Volvo X Bad Marlon product photo 3" loading="lazy">
+        <img src="assets/images/volvo-x-badmarlon/volvo-x-badmarlon-04.jpg" alt="Volvo X Bad Marlon product photo 4" loading="lazy">
+        <img src="assets/images/volvo-x-badmarlon/volvo-x-badmarlon-05.jpg" alt="Volvo X Bad Marlon product photo 5" loading="lazy">
+        <img src="assets/images/volvo-x-badmarlon/volvo-x-badmarlon-06.jpg" alt="Volvo X Bad Marlon product photo 6" loading="lazy">
+        <img src="assets/images/volvo-x-badmarlon/volvo-x-badmarlon-07.jpg" alt="Volvo X Bad Marlon product photo 7" loading="lazy">
+      </div>
+
+      <div class="details-grid">
+        <div>
+          <h2>Details</h2>
+          <div class="details-list">
+            <div class="row"><span>Client</span><span>BADMARLON</span></div>
+            <div class="row"><span>Role</span><span>Product Design</span></div>
+          </div>
+        </div>
+        <div class="description">
+          <h2>Overview</h2>
+          <p>Product collaboration between Volvo and BADMARLON, centered on a dog bed designed for the back of a car.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<dialog id="info-dialog">
+  <div class="info-panel">
+    <h2>Information</h2>
+    <p>Yujiyeon is a product designer working across branding and physical product design.</p>
+    <p>hello@yujiyeon.com</p>
+    <button class="close-btn" id="close-info" type="button">Close</button>
+  </div>
+</dialog>
+
+<dialog id="contact-dialog">
+  <div class="contact-panel">
+    <div class="contact-header">
+      <h2>Contact</h2>
+      <button id="close-contact" class="icon-close" type="button" aria-label="Close">&times;</button>
+    </div>
+    <form id="contact-form" class="contact-form">
+      <input type="email" id="contact-from" placeholder="From: (enter your email address)..." required>
+      <textarea id="contact-message" placeholder="Write your message..." required></textarea>
+      <div class="contact-actions">
+        <button type="button" id="cancel-contact" class="btn btn-ghost">Cancel</button>
+        <button type="submit" class="btn btn-dark">Send</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<script src="js/projects.js"></script>
+</body>
+</html>
