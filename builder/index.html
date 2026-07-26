@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio Builder — Yujiyeon</title>
+<link rel="stylesheet" href="builder.css">
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="app-title">Portfolio Builder</div>
+      <a class="app-back" href="../index.html">&larr; View Site</a>
+    </header>
+
+    <div class="app-body">
+      <aside class="project-list-panel">
+        <div class="panel-actions">
+          <button id="new-project-btn" class="btn btn-dark btn-block" type="button">+ New Project</button>
+          <button id="copy-projects-btn" class="btn btn-ghost btn-block btn-small" type="button">Copy PROJECTS Array</button>
+        </div>
+        <div id="projects-array-output" class="export-output" hidden>
+          <p class="hint">아래 코드로 <code>js/projects.js</code>의 <code>PROJECTS</code> 배열 전체를 바꿔치기하세요. 지금 이 목록의 순서·그룹이 그대로 반영돼요.</p>
+          <textarea id="projects-array-code" readonly rows="8"></textarea>
+        </div>
+        <div class="section-divider"></div>
+        <ul id="project-list" class="project-list"></ul>
+      </aside>
+
+      <section class="editor-panel" id="editor-panel"></section>
+
+      <section class="preview-panel">
+        <div class="preview-toolbar">
+          <div class="preview-label">Live Preview</div>
+          <div class="preview-toggle" id="preview-toggle" role="group" aria-label="Preview size">
+            <button type="button" class="toggle-btn active" data-size="desktop">PC</button>
+            <button type="button" class="toggle-btn" data-size="mobile">Mobile</button>
+          </div>
+        </div>
+        <div class="preview-frame-wrap" id="preview-frame-wrap">
+          <div class="scale-box" id="scale-box">
+            <iframe id="preview-frame" class="preview-frame" title="Live preview"></iframe>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <dialog id="generate-dialog">
+    <div class="generate-panel">
+      <div class="generate-header">
+        <div>
+          <h2>Generate</h2>
+          <div class="generate-subtitle" id="generate-subtitle">PROJECT NAME</div>
+        </div>
+        <button id="close-generate" class="icon-close" type="button" aria-label="Close">&times;</button>
+      </div>
+
+      <div class="generate-body">
+        <div class="pill-section">
+          <div class="pill-label">LANGUAGE <span class="pill-label-ko">언어</span></div>
+          <div class="pill-row" data-group="language">
+            <button type="button" class="pill" data-value="en"><span>English</span><span class="pill-ko">영문</span></button>
+            <button type="button" class="pill" data-value="ko"><span>한글</span><span class="pill-ko">한국어</span></button>
+          </div>
+        </div>
+
+        <div class="pill-section">
+          <div class="pill-label">TONE REFERENCE <span class="pill-label-ko">톤 레퍼런스</span></div>
+          <div class="pill-row" data-group="tone">
+            <button type="button" class="pill" data-value="personal"><span>Personal</span><span class="pill-ko">사적·개인</span></button>
+            <button type="button" class="pill" data-value="portfolio"><span>Portfolio</span><span class="pill-ko">포트폴리오</span></button>
+            <button type="button" class="pill" data-value="starred"><span>Starred</span><span class="pill-ko">엄선 프로젝트</span></button>
+          </div>
+        </div>
+
+        <div class="pill-section">
+          <div class="pill-label">VOICE <span class="pill-label-ko">어투</span></div>
+          <div class="pill-row" data-group="voice">
+            <button type="button" class="pill" data-value="auto"><span>Auto</span><span class="pill-ko">자동</span></button>
+            <button type="button" class="pill" data-value="first"><span>1st person</span><span class="pill-ko">1인칭</span></button>
+            <button type="button" class="pill" data-value="third"><span>3rd person</span><span class="pill-ko">3인칭</span></button>
+          </div>
+        </div>
+
+        <div class="pill-section">
+          <div class="pill-label">LENGTH <span class="pill-label-ko">길이</span></div>
+          <div class="pill-row" data-group="length">
+            <button type="button" class="pill" data-value="short"><span>Short</span><span class="pill-ko">짧게</span></button>
+            <button type="button" class="pill" data-value="medium"><span>Medium</span><span class="pill-ko">중간</span></button>
+            <button type="button" class="pill" data-value="long"><span>Long</span><span class="pill-ko">길게</span></button>
+          </div>
+        </div>
+
+        <div class="pill-section">
+          <div class="pill-label">STRUCTURE <span class="pill-label-ko">구조</span></div>
+          <div class="pill-row" data-group="structure">
+            <button type="button" class="pill" data-value="three-acts"><span>Three acts</span><span class="pill-ko">3막</span></button>
+            <button type="button" class="pill" data-value="vignettes"><span>Vignettes</span><span class="pill-ko">비네트</span></button>
+            <button type="button" class="pill" data-value="single"><span>Single scene</span><span class="pill-ko">단일 흐름</span></button>
+          </div>
+        </div>
+
+        <div class="pill-section">
+          <div class="pill-label">PHOTO FLOW <span class="pill-label-ko">사진 흐름</span></div>
+          <div class="pill-row" data-group="photoFlow">
+            <button type="button" class="pill" data-value="match"><span>Match writing</span><span class="pill-ko">글 순서대로</span></button>
+            <button type="button" class="pill" data-value="chronological"><span>Chronological</span><span class="pill-ko">시간순</span></button>
+            <button type="button" class="pill" data-value="detail-wide"><span>Detail &rarr; wide</span><span class="pill-ko">디테일&rarr;와이드</span></button>
+            <button type="button" class="pill" data-value="wide-detail"><span>Wide &rarr; detail</span><span class="pill-ko">와이드&rarr;디테일</span></button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>EMPHASIS <span class="pill-label-ko">강조</span></label>
+          <textarea id="generate-emphasis" rows="3" placeholder="강조하고 싶은 소재·재료·사실을 적어주세요. Length를 Long으로 두면 이 내용이 마지막 문단으로 붙어요."></textarea>
+        </div>
+
+        <div class="field-group">
+          <label>TONE NOTES <span class="pill-label-ko">추가 톤 메모</span></label>
+          <textarea id="generate-tone-notes" rows="2" placeholder="자유 텍스트로 어조를 보강하세요 (프로젝트에 저장만 되고 참고용이에요)"></textarea>
+        </div>
+      </div>
+
+      <div class="generate-footer">
+        <button type="button" id="generate-cancel" class="btn btn-ghost">Cancel</button>
+        <button type="button" id="generate-confirm" class="btn btn-dark">Generate</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="../js/projects.js"></script>
+  <script src="builder.js"></script>
+</body>
+</html>
