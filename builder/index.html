@@ -129,6 +129,32 @@
     </div>
   </dialog>
 
+  <dialog id="github-settings-dialog">
+    <div class="generate-panel" style="max-width:440px;">
+      <div class="generate-header">
+        <div><h2>GitHub 설정</h2></div>
+        <button id="close-github-settings" class="icon-close" type="button" aria-label="Close">&times;</button>
+      </div>
+
+      <div class="generate-body">
+        <div class="field-group">
+          <label for="gh-repo-input">Repository (owner/repo)</label>
+          <input id="gh-repo-input" type="text" placeholder="jejeisacat/portfolio">
+        </div>
+        <div class="field-group">
+          <label for="gh-token-input">Personal Access Token (repo 권한)</label>
+          <input id="gh-token-input" type="password" placeholder="ghp_...">
+          <p class="hint">이 브라우저에만 저장돼요(localStorage) — 서버로 전송되지 않고, 깃허브 API 호출에만 쓰여요.</p>
+        </div>
+      </div>
+
+      <div class="generate-footer">
+        <button type="button" id="cancel-github-settings" class="btn btn-ghost">Cancel</button>
+        <button type="button" id="save-github-settings" class="btn btn-dark">Save</button>
+      </div>
+    </div>
+  </dialog>
+
   <script src="../js/projects.js"></script>
   <script src="builder.js"></script>
 </body>
