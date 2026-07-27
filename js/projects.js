@@ -18,7 +18,7 @@ const PROJECTS = [
         slug: "dan",
         name: "Dan",
         href: "dan.html",
-        thumb: "assets/images/dan/dan-01.jpg",
+        thumb: "assets/images/dan/dan-04.jpg",
         meta: "BADMARLON"
       },
       {
