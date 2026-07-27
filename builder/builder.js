@@ -1279,13 +1279,15 @@ function initGenerateDialog() {
       dialog.close();
       return;
     }
-    // Only ask before overwriting if the current text was hand-typed and
-    // doesn't already match a stored EN/KO draft — regenerating a project
-    // that's already showing generated text is not destructive, so don't
-    // block on a confirm() the user has to notice and click through.
-    const current = (p.overview || "").trim();
-    const isCustom = current && current !== (p.overviewEn || "").trim() && current !== (p.overviewKo || "").trim();
-    if (isCustom && !confirm("Overview에 직접 입력한 내용이 있어요. 새로 생성하면 덮어써요 — 계속할까요?")) return;
+    // Only ask the first time Generate ever runs on a project that already
+    // has real content — that's the one case where Generate is destructive.
+    // (Comparing current text against overviewEn/overviewKo doesn't work: the
+    // load-time migration copies existing text into overviewEn as a "draft"
+    // for every project, so that comparison always matched and this never
+    // actually fired — Generate silently replaced hand-written copy, e.g.
+    // Maison Paris's real tagline, with the generic fallback template.)
+    const hasRealContent = (p.overview || "").trim().length > 0;
+    if (hasRealContent && !p.generateSettings && !confirm("Overview에 이미 내용이 있어요. Generate를 실행하면 새 내용으로 덮어써요 — 계속할까요?")) return;
 
     const settings = {
       tone: "portfolio",
