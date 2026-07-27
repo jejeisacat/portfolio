@@ -6,8 +6,8 @@ const PROJECTS = [
     slug: "sugo",
     name: "SUGO",
     href: "sugo.html",
-    thumb: "assets/images/sugo/sugo-06.jpg",
-    meta: "SUGO — Ceramic Tableware"
+    thumb: "assets/images/sugo/sugo-01.jpg",
+    meta: "Ceramic Tableware",
   },
   {
     slug: "badmarlon",
@@ -15,143 +15,141 @@ const PROJECTS = [
     href: null,
     children: [
       {
+        slug: "linden-bed",
+        name: "Linden Bed",
+        href: "linden-bed.html",
+        thumb: "assets/images/linden-bed/linden-bed-01.jpg",
+        meta: "BADMARLON — Pet Furniture",
+      },
+      {
         slug: "dan",
         name: "Dan",
-        href: null,
-        meta: "BADMARLON"
+        href: "dan.html",
+        thumb: "assets/images/dan/dan-01.jpg",
+        meta: "BADMARLON — Product Design",
       },
       {
         slug: "peekaboo",
         name: "Peek A Boo",
-        href: null,
-        meta: "BADMARLON"
-      },
-      {
-        slug: "linden-bed",
-        name: "Linden Bed",
-        href: "linden-bed.html",
-        thumb: "assets/images/linden-bed/linden-bed-03.jpg",
-        meta: "BADMARLON — Pet Furniture, Solid Wood"
+        href: "peekaboo.html",
+        thumb: "assets/images/peekaboo/peekaboo-01.jpg",
+        meta: "BADMARLON — Product Design",
       },
       {
         slug: "maison-paris",
         name: "Maison Paris",
         href: "maison-paris.html",
         thumb: "assets/images/maison-paris/maison-paris-01.jpg",
-        meta: "BADMARLON"
+        meta: "BADMARLON",
       },
       {
         slug: "sono",
         name: "BADMARLON x SONO",
         href: "sono.html",
         thumb: "assets/images/sono/sono-01.jpg",
-        meta: "BADMARLON"
+        meta: "BADMARLON",
       },
       {
         slug: "como",
         name: "Como",
         href: "como.html",
         thumb: "assets/images/como/como-01.jpg",
-        meta: "BADMARLON"
+        meta: "BADMARLON",
       },
       {
         slug: "deauvile",
         name: "Deauvile",
         href: "deauvile.html",
-        thumb: "assets/images/deauvile/deauvile-03.jpg",
-        meta: "BADMARLON"
+        thumb: "assets/images/deauvile/deauvile-01.jpg",
+        meta: "BADMARLON",
       },
       {
         slug: "haro",
         name: "Haro",
         href: "haro.html",
         thumb: "assets/images/haro/haro-01.jpg",
-        meta: "BADMARLON"
+        meta: "BADMARLON",
       },
       {
         slug: "lapoo",
         name: "Lapoo",
         href: "lapoo.html",
         thumb: "assets/images/lapoo/lapoo-01.jpg",
-        meta: "BADMARLON"
+        meta: "BADMARLON",
       },
       {
         slug: "marron",
         name: "Marron",
         href: "marron.html",
         thumb: "assets/images/marron/marron-01.jpg",
-        meta: "BADMARLON"
+        meta: "BADMARLON",
       },
       {
         slug: "moo",
         name: "moo",
         href: "moo.html",
         thumb: "assets/images/moo/moo-01.jpg",
-        meta: "BADMARLON"
+        meta: "BADMARLON",
       },
       {
         slug: "muret",
         name: "Muret",
         href: "muret.html",
         thumb: "assets/images/muret/muret-01.jpg",
-        meta: "BADMARLON"
+        meta: "BADMARLON",
       },
       {
         slug: "nuts",
         name: "Nuts",
         href: "nuts.html",
-        thumb: "assets/images/nuts/nuts-05.jpg",
-        meta: "BADMARLON"
+        thumb: "assets/images/nuts/nuts-01.jpg",
+        meta: "BADMARLON",
       },
       {
         slug: "provoo",
         name: "provoo",
         href: "provoo.html",
         thumb: "assets/images/provoo/provoo-01.jpg",
-        meta: "BADMARLON"
+        meta: "BADMARLON",
       },
       {
         slug: "provoo-wood",
         name: "provoo wood ver.",
         href: "provoo-wood.html",
         thumb: "assets/images/provoo-wood/provoo-wood-01.jpg",
-        meta: "BADMARLON"
+        meta: "BADMARLON",
       },
       {
         slug: "volvo-x-badmarlon",
         name: "Volvo X Bad Marlon",
         href: "volvo-x-badmarlon.html",
-        thumb: "assets/images/volvo-x-badmarlon/volvo-x-badmarlon-02.jpg",
-        meta: "BADMARLON"
+        thumb: "assets/images/volvo-x-badmarlon/volvo-x-badmarlon-01.jpg",
+        meta: "BADMARLON",
       },
       {
         slug: "rupel",
         name: "Rupel",
         href: "rupel.html",
-        thumb: "assets/images/rupel/rupel-08.jpg",
-        meta: "BADMARLON"
+        thumb: "assets/images/rupel/rupel-01.jpg",
+        meta: "BADMARLON",
       },
       {
         slug: "brdy",
         name: "Brdy",
         href: "brdy.html",
         thumb: "assets/images/brdy/brdy-01.jpg",
-        meta: "BADMARLON"
+        meta: "BADMARLON",
       },
       {
         slug: "villaine",
         name: "Villaine",
         href: "villaine.html",
         thumb: "assets/images/villaine/villaine-01.jpg",
-        meta: "BADMARLON"
-      }
-    ]
+        meta: "BADMARLON",
+      },
+    ],
   },
-  {
-    slug: "graphic",
-    name: "Graphic Works",
-    href: null
-  }
+  { slug: "graphic", name: "Graphic Works", href: null },
 ];
 
 function renderProjectIndex() {
@@ -353,9 +351,36 @@ function initContactDialog() {
   });
 }
 
+// Lets a visitor switch a project page's Tagline/Overview between the
+// English and Korean drafts. Only wired up when the page actually has a
+// Korean block (#lang-toggle is rendered `hidden` otherwise) so there's
+// never a toggle with nothing to switch to. Choice persists across pages
+// via localStorage, since browsing the whole portfolio in one language is
+// the expected use — not picking per project.
+function initLangToggle() {
+  const toggle = document.getElementById("lang-toggle");
+  const blocks = document.querySelectorAll("[data-lang-block]");
+  if (!toggle || toggle.hidden || !blocks.length) return;
+
+  const apply = (lang) => {
+    blocks.forEach((el) => { el.hidden = el.dataset.langBlock !== lang; });
+    toggle.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.dataset.lang === lang));
+  };
+
+  apply(localStorage.getItem("portfolioLang") === "ko" ? "ko" : "en");
+
+  toggle.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      localStorage.setItem("portfolioLang", btn.dataset.lang);
+      apply(btn.dataset.lang);
+    });
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   renderProjectIndex();
   renderProjectGrid();
   initInfoDialog();
   initContactDialog();
+  initLangToggle();
 });
