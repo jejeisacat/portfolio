@@ -135,6 +135,22 @@ a:hover { opacity: .6; }
 .project-head h1 { font-size: 32px; margin: 0 0 8px; font-weight: 600; letter-spacing: -.01em; }
 .project-head .tagline { color: var(--muted); font-size: 15px; margin: 0; }
 
+.lang-toggle-site { display: inline-flex; gap: 4px; margin-bottom: 10px; }
+.lang-toggle-site button {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: none;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+}
+.lang-toggle-site button:hover { border-color: #ccc; }
+.lang-toggle-site button.active { border-color: var(--fg); color: var(--fg); }
+
 .gallery {
   display: flex;
   flex-direction: column;
