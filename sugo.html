@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,20 +29,25 @@
       <a class="back-link" href="index.html">&larr; All Projects</a>
 
       <div class="project-head">
-        <div class="idx-label">SUGO &mdash; Ceramic Tableware</div>
+        <div class="idx-label">Ceramic Tableware</div>
         <h1>SUGO</h1>
-        <p class="tagline">무게감과 온기, 절제를 중심에 둔 조용한 도자기 식기 브랜드</p>
+        <div class="lang-toggle-site" id="lang-toggle">
+          <button type="button" class="active" data-lang="en">EN</button>
+          <button type="button" data-lang="ko">KO</button>
+        </div>
+        <p class="tagline" data-lang-block="en">Tableware brand identity &amp; product design</p>
+        <p class="tagline" data-lang-block="ko" hidden>무게감과 온기, 절제를 중심에 둔 조용한 도자기 식기 브랜드</p>
       </div>
 
       <div class="gallery">
-        <img src="assets/images/sugo/sugo-01.jpg" alt="SUGO ceramic bowl, side detail" width="1080" height="1080" loading="lazy">
-        <img src="assets/images/sugo/sugo-02.jpg" alt="SUGO ceramic bowl, full shot" width="1080" height="1080" loading="lazy">
-        <img src="assets/images/sugo/sugo-03.jpg" alt="SUGO ceramic bowl, base detail" width="1080" height="1080" loading="lazy">
-        <img src="assets/images/sugo/sugo-04.jpg" alt="SUGO ceramic cup, rim detail" width="1080" height="1080" loading="lazy">
-        <img src="assets/images/sugo/sugo-05.jpg" alt="SUGO ceramic cup" width="1080" height="1080" loading="lazy">
-        <img src="assets/images/sugo/sugo-06.jpg" alt="SUGO ceramic cup, full shot" width="1080" height="1080" loading="lazy">
+        <img src="assets/images/sugo/sugo-01.jpg" alt="SUGO ceramic cup" width="1080" height="1080" loading="lazy">
+        <img src="assets/images/sugo/sugo-02.jpg" alt="SUGO ceramic cup, rim detail" width="1080" height="1080" loading="lazy">
+        <img src="assets/images/sugo/sugo-03.jpg" alt="SUGO ceramic cup, full shot" width="1080" height="1080" loading="lazy">
+        <img src="assets/images/sugo/sugo-04.jpg" alt="SUGO ceramic bowl, base detail" width="1080" height="1080" loading="lazy">
+        <img src="assets/images/sugo/sugo-05.jpg" alt="SUGO ceramic bowl, full shot" width="1080" height="1080" loading="lazy">
+        <img src="assets/images/sugo/sugo-06.jpg" alt="SUGO ceramic bowl, side detail" width="1080" height="1080" loading="lazy">
       </div>
-      
+
       <div class="details-grid">
         <div>
           <h2>Details</h2>
@@ -55,8 +60,14 @@
         </div>
         <div class="description">
           <h2>Overview</h2>
-          <p>SUGO는 식기가 눈에 보이기 전에 손에 어떻게 느껴져야 하는가라는 질문에서 시작했습니다. 라인의 모든 컵과 그릇은 부드러운 무광 유약과 둥글고 묵직한 바닥을 가지고 있는데, 이는 보여주기 위한 디테일이 아니라 매일 쓰면서 느끼도록 만든 디테일입니다.</p>
-          <p>제품 디자인과 비주얼 아이덴티티를 함께 이끌었습니다. 형태 스터디와 유약 테스트부터 패키지, 그리고 식기·워드마크·이후의 모든 접점을 관통하는 하나의 따뜻하고 뉴트럴한 톤의 브랜드 사진 언어까지 담당했습니다.</p>
+          <div data-lang-block="en">
+            <p>SUGO began as a question about how tableware should feel in the hand before it looks good on a table. Every cup and bowl in the line carries a soft-matte glaze and a rounded, slightly heavy base — details meant to be felt more than seen, built for everyday use rather than display.</p>
+            <p>I led the product design and visual identity together, from the shape studies and glaze tests through to packaging and the brand's photographic language — a single warm, neutral palette that carries across the tableware, the wordmark, and every touchpoint after it.</p>
+          </div>
+          <div data-lang-block="ko" hidden>
+            <p>SUGO는 식기가 눈에 보이기 전에 손에 어떻게 느껴져야 하는가라는 질문에서 시작했습니다. 라인의 모든 컵과 그릇은 부드러운 무광 유약과 둥글고 묵직한 바닥을 가지고 있는데, 이는 보여주기 위한 디테일이 아니라 매일 쓰면서 느끼도록 만든 디테일입니다.</p>
+            <p>제품 디자인과 비주얼 아이덴티티를 함께 이끌었습니다. 형태 스터디와 유약 테스트부터 패키지, 그리고 식기·워드마크·이후의 모든 접점을 관통하는 하나의 따뜻하고 뉴트럴한 톤의 브랜드 사진 언어까지 담당했습니다.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -88,6 +99,7 @@
     </form>
   </div>
 </dialog>
+
 <script src="js/projects.js"></script>
 </body>
 </html>
