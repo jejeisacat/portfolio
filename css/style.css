@@ -411,8 +411,40 @@ dialog#contact-dialog::backdrop { background: rgba(0, 0, 0, .5); }
     left: auto;
     width: 100%;
     height: auto;
+    padding: 16px 20px;
   }
   .main { margin-left: 0; margin-top: 0; }
   .details-grid { grid-template-columns: 1fr; gap: 24px; }
   .main-inner { padding: 24px 20px 60px; }
+
+  /* Collapsed by default so the full project list doesn't push the actual
+     project content down the page — tap "Index" to expand it. */
+  .toc-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    text-align: left;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .toc-toggle::after {
+    content: "+";
+    font-size: 14px;
+    line-height: 1;
+  }
+  .sidebar.expanded .toc-toggle::after { content: "\2212"; }
+  .project-index {
+    max-height: 0;
+    overflow: hidden;
+    margin: 0;
+    transition: max-height .25s ease;
+  }
+  .sidebar.expanded .project-index { max-height: 1200px; margin-top: 14px; }
+  .sidebar footer { margin-top: 16px; }
 }
