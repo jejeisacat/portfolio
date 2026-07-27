@@ -473,6 +473,20 @@ const DEFAULT_PROJECTS = [
 // photos already exist on disk, those photos) straight into the form fields.
 // Projects not listed here (anything new you create) fall back to a simple
 // local template built from whatever fields you've already filled in.
+//
+// SOURCE OF VOICE — this is a static browser tool with no server and no
+// runtime file access, so it can't literally "read the vault" on click.
+// Instead: whenever a Claude session (re)writes Korean copy in AI_CONTENT
+// below, it must first read the vault at
+//   /Users/yujiyeon/portfolio wiki/
+// and follow, in priority order:
+//   1. voice.md        — insert the whole file as the rule set for this pass.
+//   2. portfolio/       — if an approved example exists for this project or a
+//                          similar one, use it as the primary style example.
+//   3. inbox/내가 쓴 글.md — otherwise, pull tone/phrasing examples from here.
+//   inbox/좋아하는 글.md is direction only (지향점) — never copy its tone.
+// Facts (materials, process, client) come from what's already in this file /
+// the project's own fields — voice.md governs phrasing, never invents facts.
 const AI_CONTENT = {
   sugo: {
     en: {
@@ -488,11 +502,11 @@ const AI_CONTENT = {
     ko: {
       tagline: "무게감과 온기, 절제를 중심에 둔 조용한 도자기 식기 브랜드",
       paragraphs: [
-        "SUGO는 식기가 눈에 보이기 전에 손에 어떻게 느껴져야 하는가라는 질문에서 시작했습니다. 라인의 모든 컵과 그릇은 부드러운 무광 유약과 둥글고 묵직한 바닥을 가지고 있는데, 이는 보여주기 위한 디테일이 아니라 매일 쓰면서 느끼도록 만든 디테일입니다.",
-        "제품 디자인과 비주얼 아이덴티티를 함께 이끌었습니다. 형태 스터디와 유약 테스트부터 패키지, 그리고 식기·워드마크·이후의 모든 접점을 관통하는 하나의 따뜻하고 뉴트럴한 톤의 브랜드 사진 언어까지 담당했습니다.",
+        "식기는 눈에 보이기 전에 손에 먼저 느껴져야 한다고 생각합니다. 쥐었을 때 무엇이 만져지는지, 매일 썼을 때 무엇이 남는지 — SUGO는 그 질문에서 시작했습니다. 라인의 모든 컵과 그릇은 부드러운 무광 유약과 둥글고 묵직한 바닥을 가지고 있는데, 이는 보여주기 위한 디테일이 아니라 매일 쓰면서 느끼도록 만든 디테일입니다.",
+        "제 감각과 전문성을 함께 활용해 제품 디자인과 비주얼 아이덴티티를 이끌었습니다. 형태 스터디와 유약 테스트부터 패키지, 그리고 식기·워드마크·이후의 모든 접점을 관통하는 하나의 따뜻하고 뉴트럴한 톤의 브랜드 사진 언어까지 — 브랜드의 본질을 시각적으로 전달해 식기와 그것을 매일 쓰는 사람 사이에 조용한 연결을 만드는 데 집중했습니다.",
       ],
       thirdPersonOverrides: {
-        1: "유지연이 제품 디자인과 비주얼 아이덴티티를 함께 이끌었습니다. 형태 스터디와 유약 테스트부터 패키지, 그리고 식기·워드마크·이후의 모든 접점을 관통하는 하나의 따뜻하고 뉴트럴한 톤의 브랜드 사진 언어까지 담당했습니다.",
+        1: "유지연이 감각과 전문성을 함께 활용해 제품 디자인과 비주얼 아이덴티티를 이끌었습니다. 형태 스터디와 유약 테스트부터 패키지, 그리고 식기·워드마크·이후의 모든 접점을 관통하는 하나의 따뜻하고 뉴트럴한 톤의 브랜드 사진 언어까지 담당했으며, 브랜드의 본질을 시각적으로 전달해 식기와 그것을 매일 쓰는 사람 사이에 조용한 연결을 만드는 데 집중했습니다.",
       },
     },
   },
@@ -1812,7 +1826,7 @@ function pageBodyHTML(project, { srcFn, indexList, groupName }) {
     : [project.client, project.type].filter(Boolean).join(" &mdash; ") || "&nbsp;";
   return `
 <header class="site-header">
-  <div class="site-title">YUJIYEON</div>
+  <a class="site-title" href="index.html">YUJIYEON</a>
   <nav class="site-nav">
     <button id="open-info" type="button">Information</button>
     <a href="https://www.instagram.com/jiy.y" target="_blank" rel="noopener">Instagram</a>
