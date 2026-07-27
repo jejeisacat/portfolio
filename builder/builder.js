@@ -1279,16 +1279,11 @@ function initGenerateDialog() {
       dialog.close();
       return;
     }
-    // Only ask the first time Generate ever runs on a project that already
-    // has real content — that's the one case where Generate is destructive.
-    // (Comparing current text against overviewEn/overviewKo doesn't work: the
-    // load-time migration copies existing text into overviewEn as a "draft"
-    // for every project, so that comparison always matched and this never
-    // actually fired — Generate silently replaced hand-written copy, e.g.
-    // Maison Paris's real tagline, with the generic fallback template.)
-    const hasRealContent = (p.overview || "").trim().length > 0;
-    if (hasRealContent && !p.generateSettings && !confirm("Overview에 이미 내용이 있어요. Generate를 실행하면 새 내용으로 덮어써요 — 계속할까요?")) return;
-
+    // No confirm() gate here on purpose: opening this dialog and clicking its
+    // own Generate button is already two deliberate steps, and a native
+    // confirm() has twice caused real confusion ("Generate does nothing")
+    // when it fired unnoticed or got dismissed. Overwriting is expected
+    // once someone reaches this button.
     const settings = {
       tone: "portfolio",
       voice: "auto",
