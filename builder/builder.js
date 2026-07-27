@@ -1787,9 +1787,20 @@ function detailsGridHTML(project) {
         </div>
         <div class="description">
           <h2>Overview</h2>
-          ${overviewParagraphsHTML(project.overview)}
+          <div data-lang-block="en">${overviewParagraphsHTML(project.overviewEn || project.overview)}</div>
+          ${project.overviewKo ? `<div data-lang-block="ko" hidden>${overviewParagraphsHTML(project.overviewKo)}</div>` : ""}
         </div>
       </div>`;
+}
+
+// Renders the site-facing EN/KO switch — only visible when a Korean draft
+// actually exists, so projects without one (most BADMARLON placeholders)
+// don't show a toggle with nothing to switch to.
+function langToggleHTML(hasKo) {
+  return `<div class="lang-toggle-site" id="lang-toggle"${hasKo ? "" : " hidden"}>
+          <button type="button" class="active" data-lang="en">EN</button>
+          <button type="button" data-lang="ko">KO</button>
+        </div>`;
 }
 
 function pageBodyHTML(project, { srcFn, indexList, groupName }) {
@@ -1821,7 +1832,9 @@ function pageBodyHTML(project, { srcFn, indexList, groupName }) {
       <div class="project-head">
         <div class="idx-label">${idxLabel}</div>
         <h1>${escapeHtml(project.name) || "Untitled Project"}</h1>
-        <p class="tagline">${escapeHtml(project.tagline)}</p>
+        ${langToggleHTML(!!(project.taglineKo || project.overviewKo))}
+        <p class="tagline" data-lang-block="en">${escapeHtml(project.taglineEn || project.tagline)}</p>
+        ${project.taglineKo ? `<p class="tagline" data-lang-block="ko" hidden>${escapeHtml(project.taglineKo)}</p>` : ""}
       </div>
 
       <div class="gallery">
