@@ -1044,7 +1044,7 @@ function renderEditor() {
   panel.innerHTML = `
     <div class="field-group generate-row">
       <button id="generate-btn" class="btn btn-dark btn-small" type="button">&#10022; Generate</button>
-      <span class="hint">Generate를 누르면 아래 Tagline·Overview에 영문·한글 초안이 나란히 만들어져요. 실제 사이트에는 영문(EN)이 실려요. API 키 필요 없음.</span>
+      <span class="hint">Generate를 누르면 아래 Tagline·Overview에 영문·한글 초안이 나란히 만들어져요. Overview 아래 "Publish to site"에서 고른 언어만 실제 사이트에 실려요. API 키 필요 없음.</span>
     </div>
     <div class="field-group">
       <label for="f-name">Project Name (소분류)</label>
@@ -1087,6 +1087,13 @@ function renderEditor() {
         <div class="lang-box">
           <div class="lang-box-label">KO</div>
           <textarea id="f-overview-ko" rows="7" placeholder="빈 줄로 문단을 구분하세요.">${escapeHtml(p.overviewKo)}</textarea>
+        </div>
+      </div>
+      <div class="publish-lang-row">
+        <span class="publish-lang-label">Publish to site <span class="pill-label-ko">사이트에 올릴 언어</span></span>
+        <div class="lang-toggle" id="publish-lang-toggle" role="group" aria-label="Publish language">
+          <button type="button" class="lang-pill ${p.activeLang !== "ko" ? "active" : ""}" data-lang="en">EN</button>
+          <button type="button" class="lang-pill ${p.activeLang === "ko" ? "active" : ""}" data-lang="ko">KO</button>
         </div>
       </div>
     </div>
@@ -1167,10 +1174,9 @@ function buildGeneratedContent(p, settings, lang) {
 
 // Generates BOTH English and Korean drafts at once and stores them side by
 // side on the project, so the Tagline/Overview fields in the editor can show
-// both languages at once without regenerating. The live site is English-only
-// (every published page is lang="en"), so p.tagline/p.overview — the flat
-// fields every other consumer (export, publish, preview) reads — always
-// mirror the English draft; Korean is a stored reference, not published.
+// both languages at once without regenerating. p.tagline/p.overview — the
+// flat fields every other consumer (export, publish, preview) reads — mirror
+// whichever language is picked as the Publish Language (see setActiveLang).
 function applyGeneratedContent(p, settings) {
   const en = buildGeneratedContent(p, settings, "en");
   const ko = buildGeneratedContent(p, settings, "ko");
@@ -1181,9 +1187,11 @@ function applyGeneratedContent(p, settings) {
   p.overviewKo = ko.overview;
   p.generateSettings = settings;
 
-  p.activeLang = "en";
-  p.tagline = en.tagline;
-  p.overview = en.overview;
+  // Preserve whatever publish language was already chosen (default "en" for
+  // brand-new projects) rather than resetting it — Generate refreshes both
+  // drafts, but which one is live is a separate, sticky choice.
+  p.tagline = p.activeLang === "ko" ? ko.tagline : en.tagline;
+  p.overview = p.activeLang === "ko" ? ko.overview : en.overview;
 
   const photosPreset = en.photosPreset || ko.photosPreset;
   if (photosPreset?.length && (!p.photos.length || settings.photoFlow === "detail-wide" || settings.photoFlow === "wide-detail")) {
@@ -1203,6 +1211,18 @@ function applyGeneratedContent(p, settings) {
 
   const note = en.note || ko.note;
   if (note) setTimeout(() => alert(note), 50);
+}
+
+// Sets which language's draft actually goes live — p.tagline/p.overview are
+// what export/publish/preview read, so this is the one control that decides
+// what visitors see. Both EN/KO boxes stay editable either way.
+function setActiveLang(p, lang) {
+  p.activeLang = lang === "ko" ? "ko" : "en";
+  p.tagline = p.activeLang === "ko" ? (p.taglineKo || "") : (p.taglineEn || "");
+  p.overview = p.activeLang === "ko" ? (p.overviewKo || "") : (p.overviewEn || "");
+  saveState();
+  renderEditor();
+  renderPreview();
 }
 
 let generateTargetProjectId = null;
@@ -1343,29 +1363,26 @@ function bindEditorEvents() {
   bind("f-year", "year");
   bind("f-type", "type");
 
-  // English boxes also mirror into the flat tagline/overview fields, since
-  // those are what export/publish/preview actually read (the site is
-  // English-only). Korean boxes just save their own field — reference only.
-  const bindEnField = (id, field, fieldEn) => {
+  // Both boxes always save their own EN/KO field. Whichever language is
+  // currently the Publish Language (p.activeLang) also mirrors into the flat
+  // tagline/overview fields, since those are what export/publish/preview read.
+  const bindLangField = (id, field, fieldKey, lang) => {
     const el = document.getElementById(id);
     el.addEventListener("input", () => {
-      p[field] = el.value;
-      p[fieldEn] = el.value;
+      p[fieldKey] = el.value;
+      if (p.activeLang === lang) p[field] = el.value;
       saveState();
       renderPreview();
     });
   };
-  const bindKoField = (id, fieldKo) => {
-    const el = document.getElementById(id);
-    el.addEventListener("input", () => {
-      p[fieldKo] = el.value;
-      saveState();
-    });
-  };
-  bindEnField("f-tagline-en", "tagline", "taglineEn");
-  bindEnField("f-overview-en", "overview", "overviewEn");
-  bindKoField("f-tagline-ko", "taglineKo");
-  bindKoField("f-overview-ko", "overviewKo");
+  bindLangField("f-tagline-en", "tagline", "taglineEn", "en");
+  bindLangField("f-overview-en", "overview", "overviewEn", "en");
+  bindLangField("f-tagline-ko", "tagline", "taglineKo", "ko");
+  bindLangField("f-overview-ko", "overview", "overviewKo", "ko");
+
+  document.querySelectorAll("#publish-lang-toggle .lang-pill").forEach((btn) => {
+    btn.addEventListener("click", () => setActiveLang(p, btn.dataset.lang));
+  });
 
   document.getElementById("photo-input").addEventListener("change", async (e) => {
     const files = Array.from(e.target.files || []);
@@ -1787,20 +1804,9 @@ function detailsGridHTML(project) {
         </div>
         <div class="description">
           <h2>Overview</h2>
-          <div data-lang-block="en">${overviewParagraphsHTML(project.overviewEn || project.overview)}</div>
-          ${project.overviewKo ? `<div data-lang-block="ko" hidden>${overviewParagraphsHTML(project.overviewKo)}</div>` : ""}
+          ${overviewParagraphsHTML(project.overview)}
         </div>
       </div>`;
-}
-
-// Renders the site-facing EN/KO switch — only visible when a Korean draft
-// actually exists, so projects without one (most BADMARLON placeholders)
-// don't show a toggle with nothing to switch to.
-function langToggleHTML(hasKo) {
-  return `<div class="lang-toggle-site" id="lang-toggle"${hasKo ? "" : " hidden"}>
-          <button type="button" class="active" data-lang="en">EN</button>
-          <button type="button" data-lang="ko">KO</button>
-        </div>`;
 }
 
 function pageBodyHTML(project, { srcFn, indexList, groupName }) {
@@ -1832,9 +1838,7 @@ function pageBodyHTML(project, { srcFn, indexList, groupName }) {
       <div class="project-head">
         <div class="idx-label">${idxLabel}</div>
         <h1>${escapeHtml(project.name) || "Untitled Project"}</h1>
-        ${langToggleHTML(!!(project.taglineKo || project.overviewKo))}
-        <p class="tagline" data-lang-block="en">${escapeHtml(project.taglineEn || project.tagline)}</p>
-        ${project.taglineKo ? `<p class="tagline" data-lang-block="ko" hidden>${escapeHtml(project.taglineKo)}</p>` : ""}
+        <p class="tagline">${escapeHtml(project.tagline)}</p>
       </div>
 
       <div class="gallery">
