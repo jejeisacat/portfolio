@@ -1044,11 +1044,7 @@ function renderEditor() {
   panel.innerHTML = `
     <div class="field-group generate-row">
       <button id="generate-btn" class="btn btn-dark btn-small" type="button">&#10022; Generate</button>
-      <div class="lang-toggle" id="overview-lang-toggle" role="group" aria-label="Draft language">
-        <button type="button" class="lang-pill ${p.activeLang !== "ko" ? "active" : ""}" data-lang="en">EN</button>
-        <button type="button" class="lang-pill ${p.activeLang === "ko" ? "active" : ""}" data-lang="ko">KO</button>
-      </div>
-      <span class="hint">Generate를 누르면 영문·한글 태그라인·개요를 한 번에 만들어요. EN/KO 버튼으로 보여지는 언어를 바꿀 수 있어요. API 키 필요 없음.</span>
+      <span class="hint">Generate를 누르면 아래 Tagline·Overview에 영문·한글 초안이 나란히 만들어져요. 실제 사이트에는 영문(EN)이 실려요. API 키 필요 없음.</span>
     </div>
     <div class="field-group">
       <label for="f-name">Project Name (소분류)</label>
@@ -1063,8 +1059,17 @@ function renderEditor() {
       <input id="f-slug" type="text" value="${escapeHtml(p.slug)}">
     </div>
     <div class="field-group">
-      <label for="f-tagline">Tagline</label>
-      <input id="f-tagline" type="text" value="${escapeHtml(p.tagline)}" placeholder="One line describing the project">
+      <label>Tagline</label>
+      <div class="lang-pair">
+        <div class="lang-box">
+          <div class="lang-box-label">EN</div>
+          <input id="f-tagline-en" type="text" value="${escapeHtml(p.taglineEn)}" placeholder="One line describing the project">
+        </div>
+        <div class="lang-box">
+          <div class="lang-box-label">KO</div>
+          <input id="f-tagline-ko" type="text" value="${escapeHtml(p.taglineKo)}" placeholder="한 줄 소개">
+        </div>
+      </div>
     </div>
     <div class="field-row">
       <div class="field-group"><label for="f-client">Client</label><input id="f-client" type="text" value="${escapeHtml(p.client)}"></div>
@@ -1073,8 +1078,17 @@ function renderEditor() {
       <div class="field-group"><label for="f-type">Type</label><input id="f-type" type="text" value="${escapeHtml(p.type)}"></div>
     </div>
     <div class="field-group">
-      <label for="f-overview">Overview</label>
-      <textarea id="f-overview" rows="7" placeholder="빈 줄로 문단을 구분하세요.">${escapeHtml(p.overview)}</textarea>
+      <label>Overview</label>
+      <div class="lang-pair">
+        <div class="lang-box">
+          <div class="lang-box-label">EN</div>
+          <textarea id="f-overview-en" rows="7" placeholder="Separate paragraphs with a blank line.">${escapeHtml(p.overviewEn)}</textarea>
+        </div>
+        <div class="lang-box">
+          <div class="lang-box-label">KO</div>
+          <textarea id="f-overview-ko" rows="7" placeholder="빈 줄로 문단을 구분하세요.">${escapeHtml(p.overviewKo)}</textarea>
+        </div>
+      </div>
     </div>
 
     <div class="section-title">Photos</div>
@@ -1152,9 +1166,11 @@ function buildGeneratedContent(p, settings, lang) {
 }
 
 // Generates BOTH English and Korean drafts at once and stores them side by
-// side on the project, so the two lang-toggle buttons in the editor can
-// switch between them without regenerating. The Language pill only decides
-// which of the two becomes the one shown/edited right after this call.
+// side on the project, so the Tagline/Overview fields in the editor can show
+// both languages at once without regenerating. The live site is English-only
+// (every published page is lang="en"), so p.tagline/p.overview — the flat
+// fields every other consumer (export, publish, preview) reads — always
+// mirror the English draft; Korean is a stored reference, not published.
 function applyGeneratedContent(p, settings) {
   const en = buildGeneratedContent(p, settings, "en");
   const ko = buildGeneratedContent(p, settings, "ko");
@@ -1165,10 +1181,9 @@ function applyGeneratedContent(p, settings) {
   p.overviewKo = ko.overview;
   p.generateSettings = settings;
 
-  const activeLang = settings.language === "ko" ? "ko" : "en";
-  p.activeLang = activeLang;
-  p.tagline = activeLang === "ko" ? ko.tagline : en.tagline;
-  p.overview = activeLang === "ko" ? ko.overview : en.overview;
+  p.activeLang = "en";
+  p.tagline = en.tagline;
+  p.overview = en.overview;
 
   const photosPreset = en.photosPreset || ko.photosPreset;
   if (photosPreset?.length && (!p.photos.length || settings.photoFlow === "detail-wide" || settings.photoFlow === "wide-detail")) {
@@ -1190,17 +1205,6 @@ function applyGeneratedContent(p, settings) {
   if (note) setTimeout(() => alert(note), 50);
 }
 
-// Switches which language's draft is showing/editable in the Tagline/Overview
-// fields, without touching the other language's stored text.
-function setActiveLang(p, lang) {
-  p.activeLang = lang === "ko" ? "ko" : "en";
-  p.tagline = p.activeLang === "ko" ? (p.taglineKo || "") : (p.taglineEn || "");
-  p.overview = p.activeLang === "ko" ? (p.overviewKo || "") : (p.overviewEn || "");
-  saveState();
-  renderEditor();
-  renderPreview();
-}
-
 let generateTargetProjectId = null;
 
 function openGenerateDialog(p) {
@@ -1208,7 +1212,6 @@ function openGenerateDialog(p) {
   document.getElementById("generate-subtitle").textContent = (p.name || "Untitled").toUpperCase();
 
   const settings = {
-    language: "en",
     tone: "portfolio",
     voice: "auto",
     length: "medium",
@@ -1265,7 +1268,6 @@ function initGenerateDialog() {
     if (isCustom && !confirm("Overview에 직접 입력한 내용이 있어요. 새로 생성하면 덮어써요 — 계속할까요?")) return;
 
     const settings = {
-      language: "en",
       tone: "portfolio",
       voice: "auto",
       length: "medium",
@@ -1294,10 +1296,6 @@ function bindEditorEvents() {
   const categorySelect = document.getElementById("f-category");
 
   document.getElementById("generate-btn").addEventListener("click", () => openGenerateDialog(p));
-
-  document.querySelectorAll("#overview-lang-toggle .lang-pill").forEach((btn) => {
-    btn.addEventListener("click", () => setActiveLang(p, btn.dataset.lang));
-  });
 
   nameInput.addEventListener("input", () => {
     p.name = nameInput.value;
@@ -1345,20 +1343,29 @@ function bindEditorEvents() {
   bind("f-year", "year");
   bind("f-type", "type");
 
-  // Tagline/Overview mirror into the EN/KO store that matches whichever
-  // language is currently active, so manual edits survive toggling away and back.
-  const bindLangField = (id, field, fieldEn, fieldKo) => {
+  // English boxes also mirror into the flat tagline/overview fields, since
+  // those are what export/publish/preview actually read (the site is
+  // English-only). Korean boxes just save their own field — reference only.
+  const bindEnField = (id, field, fieldEn) => {
     const el = document.getElementById(id);
     el.addEventListener("input", () => {
       p[field] = el.value;
-      if (p.activeLang === "ko") p[fieldKo] = el.value;
-      else p[fieldEn] = el.value;
+      p[fieldEn] = el.value;
       saveState();
       renderPreview();
     });
   };
-  bindLangField("f-tagline", "tagline", "taglineEn", "taglineKo");
-  bindLangField("f-overview", "overview", "overviewEn", "overviewKo");
+  const bindKoField = (id, fieldKo) => {
+    const el = document.getElementById(id);
+    el.addEventListener("input", () => {
+      p[fieldKo] = el.value;
+      saveState();
+    });
+  };
+  bindEnField("f-tagline-en", "tagline", "taglineEn");
+  bindEnField("f-overview-en", "overview", "overviewEn");
+  bindKoField("f-tagline-ko", "taglineKo");
+  bindKoField("f-overview-ko", "overviewKo");
 
   document.getElementById("photo-input").addEventListener("change", async (e) => {
     const files = Array.from(e.target.files || []);
