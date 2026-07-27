@@ -621,6 +621,18 @@ function loadState() {
       p.overviewKo = p.overviewKo ?? (isKorean ? (p.overview || "") : "");
       repaired = true;
     }
+
+    // Backfill photos for projects that were seeded before their photo list
+    // was added to DEFAULT_PROJECTS (e.g. Dan, Peekaboo) — ensureDefaultsSeeded
+    // only fills in brand-new projects, so an existing empty-photos project
+    // never picks up photos added to DEFAULT_PROJECTS later.
+    if ((!p.photos || !p.photos.length)) {
+      const dp = DEFAULT_PROJECTS.find((d) => d.data.slug === p.slug);
+      if (dp && dp.data.photos && dp.data.photos.length) {
+        p.photos = dp.data.photos.map((ph) => ({ id: uid(), ...ph }));
+        repaired = true;
+      }
+    }
   });
 
   if (localStorage.getItem(SEEDED_KEY) !== SEED_VERSION) {
