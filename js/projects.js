@@ -351,9 +351,21 @@ function initContactDialog() {
   });
 }
 
+// Mobile only (see the max-width:860px rules in style.css) — the sidebar
+// Index list is collapsed by default there so it doesn't push the actual
+// project content down the page. This just toggles the class; on desktop
+// widths the collapse styling doesn't apply, so the click is a harmless no-op.
+function initTocToggle() {
+  const toggle = document.getElementById("toc-toggle");
+  const sidebar = document.querySelector(".sidebar");
+  if (!toggle || !sidebar) return;
+  toggle.addEventListener("click", () => sidebar.classList.toggle("expanded"));
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   renderProjectIndex();
   renderProjectGrid();
   initInfoDialog();
   initContactDialog();
+  initTocToggle();
 });
